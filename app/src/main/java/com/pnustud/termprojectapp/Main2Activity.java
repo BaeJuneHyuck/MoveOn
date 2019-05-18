@@ -34,7 +34,6 @@ public class Main2Activity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback {
 
     private GoogleMap mMap;
-    boolean drawer_opened = false;
     Location loc;
     LocationManager mLocationManager;
     private static final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
@@ -44,33 +43,18 @@ public class Main2Activity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main2);
 
-//        Toolbar toolbar = findViewById(R.id.toolbar);
-//        setSupportActionBar(toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar2);
+        setSupportActionBar(toolbar);
 
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
         final DrawerLayout drawer = findViewById(R.id.drawer_layout);
 
-        FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                //Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG).setAction("Action", null).show();
-                if (drawer_opened) {
-                    drawer.closeDrawer(Gravity.LEFT);
-                    drawer_opened=false;
-                }else{
-                    drawer.openDrawer(Gravity.LEFT);
-                    drawer_opened=true;
-                }
-            }
-        });
-
-  //      ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-    //           this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-      //  drawer.addDrawerListener(toggle);
-      //  toggle.syncState();
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+             this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -160,7 +144,6 @@ public class Main2Activity extends AppCompatActivity
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
-            drawer_opened=false;
         } else {
             super.onBackPressed();
         }

@@ -37,7 +37,6 @@ public class Main3Activity extends AppCompatActivity
     private GoogleMap mMap;
     private String userId;
     private String userNick;
-    boolean drawer_opened = false;
     Location loc;
     LocationManager mLocationManager;
     private static final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
@@ -56,6 +55,8 @@ public class Main3Activity extends AppCompatActivity
             userNick =(String) b.get("userPassword");
         }
 
+        Toolbar toolbar = findViewById(R.id.toolbar3);
+        setSupportActionBar(toolbar);
 
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
@@ -64,21 +65,13 @@ public class Main3Activity extends AppCompatActivity
 
         View headerView = navigationView.getHeaderView(0);
         TextView emailText = (TextView) headerView.findViewById(R.id.email_text);
-        emailText.setText(userId);
+        String string = userId + "님 안녕하세요";
+        emailText.setText(string);
 
-        FloatingActionButton fab = findViewById(R.id.fab2);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (drawer_opened) {
-                    drawer.closeDrawer(Gravity.LEFT);
-                    drawer_opened=false;
-                }else{
-                    drawer.openDrawer(Gravity.LEFT);
-                    drawer_opened=true;
-                }
-            }
-        });
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -168,7 +161,6 @@ public class Main3Activity extends AppCompatActivity
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
-            drawer_opened=false;
         } else {
             super.onBackPressed();
         }
@@ -202,8 +194,9 @@ public class Main3Activity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_login) {
-            Intent intent = new Intent(this, LoginActivity.class);
+        if (id == R.id.nav_logout) {
+            finish();
+            Intent intent = new Intent(this, Main2Activity.class);
             startActivity(intent);
         } else if (id == R.id.nav_register) {
 

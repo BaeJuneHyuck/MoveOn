@@ -10,7 +10,7 @@
     <item android:title="Menu">
         <menu>
             <item
-                android:id="@+id/nav_login"
+                android:id="@+id/nav_logout"
                 android:icon="@drawable/ic_menu_slideshow"
                 android:title="로그아웃" />
             <item
@@ -30,7 +30,6 @@
                 android:id="@+id/nav_setting"
                 android:icon="@drawable/ic_menu_manage"
                 android:title="설정" />
-
         </menu>
     </item>
 

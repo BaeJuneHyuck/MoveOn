@@ -52,11 +52,13 @@ public class LoginActivity extends Activity {
                             JSONObject jsonResponse = new JSONObject(response);
                             boolean success = jsonResponse.getBoolean("success");
                             if(success){
+                                finish();
                                 String userId = jsonResponse.getString("userId");
                                 String userPassword = jsonResponse.getString("userPassword");
                                 Intent intent = new Intent(LoginActivity.this, Main3Activity.class);
                                 intent.putExtra("userId", userId);
                                 intent.putExtra("userPassword", userPassword);
+                                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                                 LoginActivity.this.startActivity(intent);
                             }
                             else{
