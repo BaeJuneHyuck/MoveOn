@@ -14,7 +14,7 @@
         <android.support.v7.widget.Toolbar
             android:id="@+id/toolbar3"
             android:layout_width="match_parent"
-            android:layout_height="50dp"
+            android:layout_height="52dp"
             app:popupTheme="@style/PopupOverlay"
             android:background="@drawable/loading_color"
             android:elevation="0dp" >
@@ -22,7 +22,7 @@
                 android:id="@+id/editSearch3"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="8dp"
+                android:layout_margin="7dp"
                 android:imeOptions="actionSearch"
                 android:inputType="text"
                 android:padding="8dp"

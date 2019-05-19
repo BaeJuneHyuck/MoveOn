@@ -6,12 +6,8 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.ActionBar;
-import android.view.Gravity;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -52,7 +48,7 @@ public class Main3Activity extends AppCompatActivity
         if(b!=null)
         {
             userId =(String) b.get("userId");
-            userNick =(String) b.get("userPassword");
+            userNick =(String) b.get("userNick");
         }
 
         Toolbar toolbar = findViewById(R.id.toolbar3);
@@ -65,7 +61,7 @@ public class Main3Activity extends AppCompatActivity
 
         View headerView = navigationView.getHeaderView(0);
         TextView emailText = (TextView) headerView.findViewById(R.id.email_text);
-        String string = userId + "님 안녕하세요";
+        String string = userNick+ "님 안녕하세요";
         emailText.setText(string);
 
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(

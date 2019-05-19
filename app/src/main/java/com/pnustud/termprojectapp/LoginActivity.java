@@ -54,10 +54,10 @@ public class LoginActivity extends Activity {
                             if(success){
                                 finish();
                                 String userId = jsonResponse.getString("userId");
-                                String userPassword = jsonResponse.getString("userPassword");
+                                String nickname = jsonResponse.getString("userNick");
                                 Intent intent = new Intent(LoginActivity.this, Main3Activity.class);
                                 intent.putExtra("userId", userId);
-                                intent.putExtra("userPassword", userPassword);
+                                intent.putExtra("userNick",nickname);
                                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                                 LoginActivity.this.startActivity(intent);
                             }

@@ -29,6 +29,7 @@
                 android:background="@drawable/border_box"
                 android:backgroundTint="@color/colorPrimary"
                 android:textColor="#000000"/>
+
         </android.support.v7.widget.Toolbar>
 
     </android.support.design.widget.AppBarLayout>

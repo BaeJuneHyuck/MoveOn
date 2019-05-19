@@ -11,13 +11,20 @@
         <menu>
             <item
                 android:id="@+id/nav_login"
-                android:icon="@drawable/ic_menu_slideshow"
+                android:icon="@drawable/ic_menu_send"
                 android:title="로그인" />
+            <item
+                android:id="@+id/nav_register"
+                android:icon="@drawable/ic_menu_gallery"
+                android:title="장소 등록하기" />
+            <item
+                android:id="@+id/nav_share"
+                android:icon="@drawable/ic_menu_share"
+                android:title="위치공유" />
             <item
                 android:id="@+id/nav_setting"
                 android:icon="@drawable/ic_menu_manage"
                 android:title="설정" />
-
         </menu>
     </item>
 
