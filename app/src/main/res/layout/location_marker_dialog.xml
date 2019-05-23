@@ -12,69 +12,65 @@
     android:background ="@drawable/loading_color">
 
     <!-- Login progress -->
-    <ProgressBar
-        android:id="@+id/dialog_progress"
-        style="?android:attr/progressBarStyleLarge"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:visibility="gone" />
 
     <ScrollView
         android:layout_marginTop="30dp"
         android:id="@+id/login_form"
         android:layout_width="match_parent"
-        android:layout_height="230dp">
+        android:layout_height="180dp">
 
         <LinearLayout
-            android:id="@+id/email_login_form"
+            android:id="@+id/form"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/location_dialog_textview"
+                android:id="@+id/location_marker_dialog_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="TextView" />
+                android:text="이름"
+                android:textSize ="25dp"/>
 
-            <android.support.design.widget.TextInputLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <AutoCompleteTextView
-                    android:id="@+id/location_dialog_name"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="@string/building"
-                    android:inputType="textEmailAddress"
-                    android:maxLines="1"
-                    android:singleLine="true" />
-
-            </android.support.design.widget.TextInputLayout>
-
-            <Spinner
-                android:id="@+id/location_dialog_spinner"
+            <TextView
+                android:id="@+id/location_marker_dialog_type"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:entries="@array/location_arrays"/>
+                android:text="타입" />
 
-            <CheckBox
-                android:id="@+id/location_dialog_toilet"
+            <TextView
+                android:id="@+id/location_marker_dialog_toilet"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/toilet" />
+                android:text="화장실 있음" />
+
+            <TextView
+                android:id="@+id/location_marker_dialog_report"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="누적 신고횟수" />
 
             <android.support.v7.widget.AppCompatButton
-                android:id="@+id/location_dialog_reg"
+                android:id="@+id/location_marker_dialog_reportButton"
                 style="?android:textAppearanceSmall"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="@string/location_register"
+                android:text="신고하기"
                 android:textStyle="bold"
                 android:textColor="#FFFFFF"
                 app:backgroundTint="#000000"/>
+
+            <android.support.v7.widget.AppCompatButton
+                android:id="@+id/location_marker_dialog_reportButton2"
+                style="?android:textAppearanceSmall"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="신고하기"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold"
+                app:backgroundTint="#000000" />
 
         </LinearLayout>
     </ScrollView>

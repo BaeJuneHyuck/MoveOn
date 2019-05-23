@@ -9,6 +9,7 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.design.widget.NavigationView;
@@ -18,6 +19,7 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -41,14 +43,20 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback {
+import java.util.ArrayList;
 
+public class MainActivity extends AppCompatActivity
+        implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
+
+    ArrayList<DBLocation> LocationList;
+    ArrayList<Marker> MarkerList;
     private GoogleMap mMap;
     Location loc;
     LocationManager mLocationManager;
@@ -68,6 +76,8 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        LocationList = new ArrayList<>();
+        MarkerList = new ArrayList<>();
         searchBox = findViewById(R.id.editSearch2);
         Toolbar toolbar = findViewById(R.id.toolbar2);
         setSupportActionBar(toolbar);
@@ -120,6 +130,16 @@ public class MainActivity extends AppCompatActivity
             Toast.makeText(this, "Permission Error init", Toast.LENGTH_LONG).show();
         }
         initMap();
+        mMap.setOnMarkerClickListener(this);
+        final Handler ha=new Handler();
+        ha.postDelayed(new Runnable() {
+
+            @Override
+            public void run() {
+                MapUpdate();
+                ha.postDelayed(this, 15000);
+            }
+        }, 15000);
     }
 
     public void initMap(){
@@ -133,13 +153,12 @@ public class MainActivity extends AppCompatActivity
             lat = loc.getLatitude();
             lng = loc.getLongitude();
             LatLng SEOUL = new LatLng(lat,lng);
-
+/*
             MarkerOptions markerOptions = new MarkerOptions();
             markerOptions.position(SEOUL);
             markerOptions.title("현재위치");
-            markerOptions.snippet("설명");
             mMap.addMarker(markerOptions);
-
+*/
             mMap.moveCamera(CameraUpdateFactory.newLatLng(SEOUL));
             mMap.animateCamera(CameraUpdateFactory.zoomTo(17));
 
@@ -455,7 +474,6 @@ public class MainActivity extends AppCompatActivity
                                         .create()
                                         .show();
                                 myDialog.dismiss();
-
                             }
                             else{
                                 AlertDialog.Builder builder = new AlertDialog.Builder(context);
@@ -479,5 +497,117 @@ public class MainActivity extends AppCompatActivity
         myDialog.show();
         Window window = myDialog.getWindow();
         window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.WRAP_CONTENT);
+    }
+
+    void MapUpdate(){
+        mMap.clear();
+        MarkerList.clear();
+        LocationList.clear();
+
+        Response.Listener<String> responseListener = new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                try {
+                    JSONArray jsonArray = new JSONArray(response);
+                    final DBLocation temp = new DBLocation();
+                    for(int i=0; i<jsonArray.length(); i++){
+                        JSONObject jsonObject = jsonArray.getJSONObject(i);
+                        temp.setName(jsonObject.getString("name"));
+                        temp.setLatitude(jsonObject.getDouble("latitude"));
+                        temp.setLongitude(jsonObject.getDouble("longitude"));
+                        temp.setToilet(jsonObject.getInt("toilet"));
+                        temp.setType(jsonObject.getInt("type"));
+                        temp.setReport(jsonObject.getInt("report"));
+                        LocationList.add(new DBLocation(temp));
+                        Log.d("test", "temp "+i);
+                    }
+                    PrintMarkers();
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
+        };
+
+        LocationRequest locationRequest = new LocationRequest(responseListener);
+        RequestQueue queue = Volley.newRequestQueue(this);
+        queue.add(locationRequest);
+    }
+
+    void PrintMarkers(){
+        DBLocation loc;
+
+        Log.d("Print Markers", "total size =  "+ LocationList.size());
+        for(int i = 0; i < LocationList.size() ;i++){
+            loc = LocationList.get(i);
+            LatLng latlng = new LatLng(loc.getLatitude(),loc.getLongitude());
+            Log.d("Print Markers", "index : " + i + "latlng =  " + latlng.latitude + ", "+latlng.longitude);
+            Marker newmarker = mMap.addMarker(new MarkerOptions()
+                    .position(latlng)
+                    .title(loc.getName())
+            );
+            newmarker.setTag(i);
+        }
+    }
+
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+        final TextView nameField,typeField,toiletField,reportField;
+        final Button button_report;
+
+        final Context context = this;
+        final Dialog myDialog = new Dialog(this);
+        myDialog.setContentView(R.layout.location_marker_dialog);
+
+        button_report = (Button) myDialog.findViewById(R.id.location_marker_dialog_reportButton);
+
+        nameField = (TextView) myDialog.findViewById(R.id.location_marker_dialog_name);
+        typeField = (TextView) myDialog.findViewById(R.id.location_marker_dialog_type);
+        toiletField = (TextView) myDialog.findViewById(R.id.location_marker_dialog_toilet);
+        reportField = (TextView) myDialog.findViewById(R.id.location_marker_dialog_report);
+
+        nameField.setText(marker.getTitle());
+        int tag = (int)marker.getTag();
+        DBLocation loc = LocationList.get(tag);
+        switch( loc.getType()){
+            case 0:
+                typeField.setText("음식점");
+                break;
+            case 1:
+                typeField.setText("카페");
+                break;
+            case 2:
+                typeField.setText("도서관");
+                break;
+            case 3:
+                typeField.setText("병원");
+                break;
+            case 4:
+                typeField.setText("은행");
+                break;
+            case 5:
+                typeField.setText("공원");
+                break;
+            default:
+                typeField.setText("기타");
+                break;
+        }
+        if(loc.getToilet() == 1){
+            toiletField.setText("화장실 있음");
+        }else{
+            toiletField.setText("화장실 없음");
+        }
+        reportField.setText("신고횟수 :" + loc.getReport()+ "회");
+
+        button_report.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                myDialog.dismiss();
+            }
+        });
+
+        myDialog.show();
+        Window window = myDialog.getWindow();
+        window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.WRAP_CONTENT);
+        return false;
     }
 }

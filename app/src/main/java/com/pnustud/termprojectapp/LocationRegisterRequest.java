@@ -1,13 +1,11 @@
 package com.pnustud.termprojectapp;
-
 import com.android.volley.Response;
 import com.android.volley.toolbox.StringRequest;
-
 import java.util.HashMap;
 import java.util.Map;
 
 public class LocationRegisterRequest extends StringRequest {
-    final static private String URL = "http://skh2929209.cafe24.com/BRegister.php";
+    final static private String URL = "http://skh2929209.cafe24.com/LocationRegister.php";
     private Map<String, String> parameters;
 
     public LocationRegisterRequest(String locName, double lat, double lng ,String toilet, int type, Response.Listener<String> listener){
