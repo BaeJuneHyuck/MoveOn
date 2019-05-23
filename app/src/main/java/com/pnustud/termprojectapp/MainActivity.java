@@ -8,7 +8,6 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -30,6 +29,7 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -43,16 +43,17 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
-public class Main2Activity extends AppCompatActivity
+public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback {
 
     private GoogleMap mMap;
     Location loc;
     LocationManager mLocationManager;
     private static final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
-    private static boolean logined;
+    private static boolean is_logined;
     private String logined_userId;
     private String logined_userNick = "Guest";
     private NavigationView navigationView;
@@ -60,11 +61,12 @@ public class Main2Activity extends AppCompatActivity
     double lat;
     double lng;
     SharedPreferences preference_login_data;
+    int backButtonCount = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main2);
+        setContentView(R.layout.activity_main);
 
         searchBox = findViewById(R.id.editSearch2);
         Toolbar toolbar = findViewById(R.id.toolbar2);
@@ -90,7 +92,7 @@ public class Main2Activity extends AppCompatActivity
                 String search = searchBox.getText().toString();
                 if (actionId == EditorInfo.IME_ACTION_SEARCH) {
                     //performSearch();
-                    AlertDialog.Builder builder = new AlertDialog.Builder(Main2Activity.this);
+                    AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
                     builder.setMessage("검색기능 만들어주세요 :" +  search)
                             .setNegativeButton("확인", null)
                             .create()
@@ -100,20 +102,6 @@ public class Main2Activity extends AppCompatActivity
                 return false;
             }
         });
-
-        // check auto login
-        //preference_login_data = PreferenceManager.getDefaultSharedPreferences(this);
-        preference_login_data = this.getSharedPreferences("sFile",MODE_PRIVATE);
-        if(preference_login_data.getBoolean("autologin", false)){
-            String savedEmail = preference_login_data.getString("email", "");
-            String savedPass = preference_login_data.getString("password", "");
-            if(autoLogin(savedEmail, savedPass, this)){
-                Toast.makeText(this, "자동로그인 완료:" + logined_userNick, Toast.LENGTH_LONG).show();
-                loginSuccess();
-            }else{
-                Toast.makeText(this, "자동로그인에 실패 하였습니다.", Toast.LENGTH_LONG).show();
-            }
-        }
     }
 
     @Override
@@ -177,21 +165,17 @@ public class Main2Activity extends AppCompatActivity
                     // permission was granted, yay! Do the
                     // contacts-related task you need to do.
 
-                } else {
+                    } else {
 
                     // permission denied, boo! Disable the
                     // functionality that depends on this permission.
                 }
                 return;
             }
-
             // other 'case' lines to check for other
             // permissions this app might request
         }
     }
-
-
-
 
     @Override
     public void onBackPressed() {
@@ -199,14 +183,27 @@ public class Main2Activity extends AppCompatActivity
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
-            super.onBackPressed();
+            //super.onBackPressed();
+            if(backButtonCount >= 1)
+            {
+                Intent intent = new Intent(Intent.ACTION_MAIN);
+                intent.addCategory(Intent.CATEGORY_HOME);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+                backButtonCount = 0;
+            }
+            else
+            {
+                Toast.makeText(this, "이전 버튼을 한번 더 누를시 앱이 종료됩니다.", Toast.LENGTH_SHORT).show();
+                backButtonCount++;
+            }
         }
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main2, menu);
+        getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
 
@@ -232,14 +229,29 @@ public class Main2Activity extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_login) {
-            if(logined){
+            if(is_logined){
                 logout();
             }else{
-                callLoginDialog();
+                // check auto login
+                //preference_login_data = PreferenceManager.getDefaultSharedPreferences(this);
+
+                preference_login_data = this.getSharedPreferences("sFile",MODE_PRIVATE);
+                if(preference_login_data.getBoolean("autologin", false)){
+                    String savedEmail = preference_login_data.getString("email", "");
+                    String savedPass = preference_login_data.getString("password", "");
+                    if(autoLogin(savedEmail, savedPass, this)){
+                        Toast.makeText(this, "자동로그인 완료:" + logined_userNick, Toast.LENGTH_LONG).show();
+                        loginSuccess();
+                    }else{
+                        Toast.makeText(this, "자동로그인에 실패 하였습니다.", Toast.LENGTH_LONG).show();
+                    }
+                }else {
+                    callLoginDialog();
+                }
             }
         } else if (id == R.id.nav_register) {
-            if(logined){
-                // do location register job
+            if(is_logined){
+                locationRegister();
             }else{
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setMessage("로그인이 필요한 기능입니다. 먼저 로그인 해주세요")
@@ -305,7 +317,7 @@ public class Main2Activity extends AppCompatActivity
                             boolean success = jsonResponse.getBoolean("success");
                             if(success){
 
-                                logined  = true;
+                                is_logined  = true;
                                 logined_userId = jsonResponse.getString("userId");
                                 logined_userNick = jsonResponse.getString("userNick");
                                 if(checkbox_remain.isChecked()){
@@ -315,18 +327,11 @@ public class Main2Activity extends AppCompatActivity
                                     editor.putString("password", userPassword);
                                     editor.commit();
                                 }
-                                /*
-                                Intent intent = new Intent(context, Main3Activity.class);
-                                intent.putExtra("userId", userId);
-                                intent.putExtra("userNick",nickname);
-                                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                                context.startActivity(intent);
-                                */
                                 myDialog.dismiss();
                                 loginSuccess();
                             }
                             else{
-                                logined  = false;
+                                is_logined  = false;
                                 AlertDialog.Builder builder = new AlertDialog.Builder(context);
                                 builder.setMessage("잘못된 이메일이나 비밀번호입니다")
                                         .setNegativeButton("확인", null)
@@ -352,6 +357,7 @@ public class Main2Activity extends AppCompatActivity
     }
 
     private boolean autoLogin(final String userId, final String userPassword, final Context context){
+        is_logined  = false;
         Response.Listener<String> responseListener = new Response.Listener<String>(){
 
             @Override
@@ -360,12 +366,12 @@ public class Main2Activity extends AppCompatActivity
                     JSONObject jsonResponse = new JSONObject(response);
                     boolean success = jsonResponse.getBoolean("success");
                     if(success){
-                        logined  = true;
                         logined_userId = jsonResponse.getString("userId");
                         logined_userNick = jsonResponse.getString("userNick");
+                        is_logined  = true;
                     }
                     else{
-                        logined  = false;
+                        is_logined  = false;
                     }
                 }
                 catch(Exception e)
@@ -377,7 +383,7 @@ public class Main2Activity extends AppCompatActivity
         LoginRequest loginRequest = new LoginRequest(userId, userPassword, responseListener);
         RequestQueue queue = Volley.newRequestQueue(context);
         queue.add(loginRequest);
-        return logined;
+        return is_logined;
     }
 
     private void loginSuccess(){
@@ -391,16 +397,14 @@ public class Main2Activity extends AppCompatActivity
         TextView emailText = (TextView) headerView.findViewById(R.id.textView_print_email);
         String string = logined_userNick + "님 안녕하세요";
         emailText.setText(string);
-
     }
 
     private void logout(){
-        logined = false;
+        is_logined = false;
         // 자동 로그인 기록을 지워줌
+        preference_login_data = this.getSharedPreferences("sFile",MODE_PRIVATE);
         SharedPreferences.Editor editor = preference_login_data.edit();
-        editor.putBoolean("autologin",false);
-        editor.putString("email", " ");
-        editor.putString("password"," ");
+        editor.clear(); //clear all stored data
         editor.commit();
 
         // 첫번째 버튼인 로그인 버튼의 글자를 로그인으로 변경
@@ -413,5 +417,67 @@ public class Main2Activity extends AppCompatActivity
         TextView emailText = (TextView) headerView.findViewById(R.id.textView_print_email);
         String string = "로그인해주세요";
         emailText.setText(string);
+    }
+
+    private void locationRegister(){
+        final Context context = this;
+        final Dialog myDialog = new Dialog(this);
+        myDialog.setContentView(R.layout.location_register_dialog);
+
+        final EditText nameText = (EditText)myDialog.findViewById(R.id.location_dialog_name);
+        final Spinner spinner = (Spinner)myDialog.findViewById(R.id.location_dialog_spinner);
+        final CheckBox toiletBox = (CheckBox)myDialog.findViewById(R.id.location_dialog_toilet);
+        TextView latlngBox = (TextView)myDialog.findViewById(R.id.location_dialog_textview);
+        Button registerButton = (Button)myDialog.findViewById(R.id.location_dialog_reg);
+
+        latlngBox.setText("현재 위치: " + lat + ", " + lng);
+        registerButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String locName = nameText.getText().toString();
+                int locType = spinner.getSelectedItemPosition();
+                String locToilet;
+                if (toiletBox.isChecked()) locToilet = "1";
+                else locToilet = "0";
+
+                Response.Listener<String> responseListener = new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+
+                        try {
+                            JSONObject jsonResponse = new JSONObject(response);
+                            boolean success = jsonResponse.getBoolean("success");
+
+                            if(success){
+                                AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                                builder.setMessage("success.")
+                                        .setPositiveButton("OK", null)
+                                        .create()
+                                        .show();
+                                myDialog.dismiss();
+
+                            }
+                            else{
+                                AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                                builder.setMessage("fail.")
+                                        .setNegativeButton("RETRY", null)
+                                        .create()
+                                        .show();
+                            }
+                        }
+                        catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                };
+                LocationRegisterRequest registerRequest = new LocationRegisterRequest(locName, lat,lng,locToilet, locType, responseListener);
+                RequestQueue queue = Volley.newRequestQueue(context);
+                queue.add(registerRequest);
+            }
+        });
+
+        myDialog.show();
+        Window window = myDialog.getWindow();
+        window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.WRAP_CONTENT);
     }
 }

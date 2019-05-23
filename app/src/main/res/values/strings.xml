@@ -3,27 +3,32 @@
     <string name="sub_title_text">오늘은 어디에 갈까?</string>
     <string name="title_activity_maps">Map</string>
     <string name="title_activity_login">Sign in</string>
+    <string name="title_activity_main">Main</string>
     <!-- Strings related to login -->
     <string name="prompt_email">Email</string>
     <string name="prompt_password">Password</string>
-    <string name="action_sign_in">Sign in</string>
-    <string name="action_sign_reg">register</string>
+    <string name="action_sign_in">로그인</string>
+    <string name="action_sign_reg">회원가입</string>
+    <string name="location_register">등록</string>
     <string name="action_sign_in_short">Sign in</string>
-    <string name="error_invalid_email">This email address is invalid</string>
-    <string name="error_invalid_password">This password is too short</string>
-    <string name="error_incorrect_password">This password is incorrect</string>
-    <string name="error_field_required">This field is required</string>
-    <string name="permission_rationale">"Contacts permissions are needed for providing email
-        completions."
-    </string>
-    <string name="title_activity_main2">Main2Activity</string>
-    <string name="navigation_drawer_open">Open navigation drawer</string>
-    <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="nav_header_title">Android Studio</string>
-    <string name="nav_header_subtitle">android.studio@android.com</string>
-    <string name="nav_header_desc">Navigation header</string>
-    <string name="action_settings">Settings</string>
-    <string name="title_activity_temp">temp</string>
-    <string name="title_activity_main3">Main3Activity</string>
+    <string name="error_invalid_email">이메일 주소가 잘못되었습니다.</string>
+
+    <string name="navigation_drawer_open">open</string>
+    <string name="navigation_drawer_close">close</string>
+
+    <string name="action_settings">설정</string>
     <string name="send_to">"공유에 사용할 앱을 선택해주세요."</string>
+    <string name="building">"건물이나 장소의 이름을 입력해주세요."</string>
+    <string name="toilet">"장애인 화장실 있음."</string>
+
+    <string-array name="location_arrays">
+        <item>음식점</item>
+        <item>카페</item>
+        <item>도서관</item>
+        <item>병원</item>
+        <item>은행</item>
+        <item>공원</item>
+        <item>기타</item>
+    </string-array>
+
 </resources>

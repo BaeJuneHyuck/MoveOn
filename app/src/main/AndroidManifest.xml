@@ -23,17 +23,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.Light.NoActionBar">
         <activity
-            android:name=".Main3Activity"
-            android:label="@string/title_activity_main3"
-            android:theme="@style/NoActionBar"></activity>
-        <activity
-            android:name=".Main2Activity"
-            android:label="@string/title_activity_main2"
+            android:name=".MainActivity"
+            android:label="@string/title_activity_main"
             android:theme="@style/NoActionBar" />
         <activity android:name=".RegisterActivity" />
-        <activity
-            android:name=".LoginActivity"
-            android:label="@string/title_activity_login" />
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
@@ -42,9 +35,6 @@
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />
 
-        <activity
-            android:name=".MapsActivity"
-            android:label="@string/title_activity_maps" />
         <activity android:name=".LoadingActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
