@@ -55,21 +55,21 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
 
-    ArrayList<DBLocation> LocationList;
-    ArrayList<Marker> MarkerList;
+    private ArrayList<DBLocation> LocationList;
+    private ArrayList<Marker> MarkerList;
     private GoogleMap mMap;
-    Location loc;
-    LocationManager mLocationManager;
+    private Location loc;
+    private LocationManager mLocationManager;
     private static final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private static boolean is_logined;
     private String logined_userId;
     private String logined_userNick = "Guest";
     private NavigationView navigationView;
     private EditText searchBox;
-    double lat;
-    double lng;
-    SharedPreferences preference_login_data;
-    int backButtonCount = 0;
+    private double lat;
+    private double lng;
+    private SharedPreferences preference_login_data;
+    private int backButtonCount = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -129,8 +129,11 @@ public class MainActivity extends AppCompatActivity
         } else {
             Toast.makeText(this, "Permission Error init", Toast.LENGTH_LONG).show();
         }
+
         initMap();
         mMap.setOnMarkerClickListener(this);
+
+        PrintMarkers();
         final Handler ha=new Handler();
         ha.postDelayed(new Runnable() {
 
@@ -140,6 +143,27 @@ public class MainActivity extends AppCompatActivity
                 ha.postDelayed(this, 15000);
             }
         }, 15000);
+
+
+        // check auto login
+        //preference_login_data = PreferenceManager.getDefaultSharedPreferences(this);
+        preference_login_data = this.getSharedPreferences("sFile",MODE_PRIVATE);
+        if(preference_login_data.getBoolean("autologin", false)){
+            String savedEmail = preference_login_data.getString("email", "");
+            String savedPass = preference_login_data.getString("password", "");
+            autoLogin(savedEmail, savedPass, this);
+            /*
+            if(autoLogin(savedEmail, savedPass, this)){
+
+                Log.d("AutoTest","자동로그인 성공!");
+                Toast.makeText(this, "자동로그인 완료:" + logined_userNick, Toast.LENGTH_LONG).show();
+                loginSuccess();
+            }else{
+                Log.d("AutoTest","자동로그인 실패!");
+                Toast.makeText(this, "자동로그인에 실패 하였습니다.", Toast.LENGTH_LONG).show();
+            }*/
+
+        }
     }
 
     public void initMap(){
@@ -153,12 +177,7 @@ public class MainActivity extends AppCompatActivity
             lat = loc.getLatitude();
             lng = loc.getLongitude();
             LatLng SEOUL = new LatLng(lat,lng);
-/*
-            MarkerOptions markerOptions = new MarkerOptions();
-            markerOptions.position(SEOUL);
-            markerOptions.title("현재위치");
-            mMap.addMarker(markerOptions);
-*/
+
             mMap.moveCamera(CameraUpdateFactory.newLatLng(SEOUL));
             mMap.animateCamera(CameraUpdateFactory.zoomTo(17));
 
@@ -251,22 +270,7 @@ public class MainActivity extends AppCompatActivity
             if(is_logined){
                 logout();
             }else{
-                // check auto login
-                //preference_login_data = PreferenceManager.getDefaultSharedPreferences(this);
-
-                preference_login_data = this.getSharedPreferences("sFile",MODE_PRIVATE);
-                if(preference_login_data.getBoolean("autologin", false)){
-                    String savedEmail = preference_login_data.getString("email", "");
-                    String savedPass = preference_login_data.getString("password", "");
-                    if(autoLogin(savedEmail, savedPass, this)){
-                        Toast.makeText(this, "자동로그인 완료:" + logined_userNick, Toast.LENGTH_LONG).show();
-                        loginSuccess();
-                    }else{
-                        Toast.makeText(this, "자동로그인에 실패 하였습니다.", Toast.LENGTH_LONG).show();
-                    }
-                }else {
-                    callLoginDialog();
-                }
+                callLoginDialog();
             }
         } else if (id == R.id.nav_register) {
             if(is_logined){
@@ -376,6 +380,8 @@ public class MainActivity extends AppCompatActivity
     }
 
     private boolean autoLogin(final String userId, final String userPassword, final Context context){
+
+        Log.d("AutoTest","AUTOLOGIN 호출");
         is_logined  = false;
         Response.Listener<String> responseListener = new Response.Listener<String>(){
 
@@ -387,9 +393,12 @@ public class MainActivity extends AppCompatActivity
                     if(success){
                         logined_userId = jsonResponse.getString("userId");
                         logined_userNick = jsonResponse.getString("userNick");
+                        Log.d("AutoTest","JSON 성공!" + logined_userNick);
                         is_logined  = true;
+                        loginSuccess();
                     }
                     else{
+                        Log.d("AutoTest","JSON 실패!");
                         is_logined  = false;
                     }
                 }
@@ -402,6 +411,8 @@ public class MainActivity extends AppCompatActivity
         LoginRequest loginRequest = new LoginRequest(userId, userPassword, responseListener);
         RequestQueue queue = Volley.newRequestQueue(context);
         queue.add(loginRequest);
+
+        Log.d("AutoTest","AutoLogin()  Return : " + is_logined);
         return is_logined;
     }
 
@@ -415,6 +426,8 @@ public class MainActivity extends AppCompatActivity
         View headerView = navigationView.getHeaderView(0);
         TextView emailText = (TextView) headerView.findViewById(R.id.textView_print_email);
         String string = logined_userNick + "님 안녕하세요";
+
+        Log.d("Auto","AUTOLOGIN : " + is_logined+"님 안녕하세요");
         emailText.setText(string);
     }
 
@@ -500,10 +513,8 @@ public class MainActivity extends AppCompatActivity
     }
 
     void MapUpdate(){
-        mMap.clear();
         MarkerList.clear();
         LocationList.clear();
-
         Response.Listener<String> responseListener = new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
@@ -512,6 +523,7 @@ public class MainActivity extends AppCompatActivity
                     final DBLocation temp = new DBLocation();
                     for(int i=0; i<jsonArray.length(); i++){
                         JSONObject jsonObject = jsonArray.getJSONObject(i);
+                        temp.setId(jsonObject.getInt("id"));
                         temp.setName(jsonObject.getString("name"));
                         temp.setLatitude(jsonObject.getDouble("latitude"));
                         temp.setLongitude(jsonObject.getDouble("longitude"));
@@ -519,8 +531,8 @@ public class MainActivity extends AppCompatActivity
                         temp.setType(jsonObject.getInt("type"));
                         temp.setReport(jsonObject.getInt("report"));
                         LocationList.add(new DBLocation(temp));
-                        Log.d("test", "temp "+i);
                     }
+                    mMap.clear();
                     PrintMarkers();
                 }catch (Exception e){
                     e.printStackTrace();
@@ -536,11 +548,9 @@ public class MainActivity extends AppCompatActivity
     void PrintMarkers(){
         DBLocation loc;
 
-        Log.d("Print Markers", "total size =  "+ LocationList.size());
         for(int i = 0; i < LocationList.size() ;i++){
             loc = LocationList.get(i);
             LatLng latlng = new LatLng(loc.getLatitude(),loc.getLongitude());
-            Log.d("Print Markers", "index : " + i + "latlng =  " + latlng.latitude + ", "+latlng.longitude);
             Marker newmarker = mMap.addMarker(new MarkerOptions()
                     .position(latlng)
                     .title(loc.getName())
@@ -568,6 +578,8 @@ public class MainActivity extends AppCompatActivity
         nameField.setText(marker.getTitle());
         int tag = (int)marker.getTag();
         DBLocation loc = LocationList.get(tag);
+        final int id = loc.getId();
+
         switch( loc.getType()){
             case 0:
                 typeField.setText("음식점");
@@ -599,9 +611,26 @@ public class MainActivity extends AppCompatActivity
         reportField.setText("신고횟수 :" + loc.getReport()+ "회");
 
         button_report.setOnClickListener(new View.OnClickListener() {
-            @Override
             public void onClick(View v) {
+
                 myDialog.dismiss();
+                if(is_logined){
+                    Response.Listener<String> ReportListener = new Response.Listener<String>() {
+                        @Override
+                        public void onResponse(String response) {
+                        }
+                    };
+                    Log.d("AutoTest","ID  : " + id  +"에대해서 호출");
+                    ReportRequest reportListener = new ReportRequest(id, ReportListener);
+                    RequestQueue queue = Volley.newRequestQueue(MainActivity.this);
+                    queue.add(reportListener);
+                }else{
+                    AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                    builder.setMessage("로그인이 필요한 기능입니다. 먼저 로그인 해주세요")
+                            .setNegativeButton("확인", null)
+                            .create()
+                            .show();
+                }
             }
         });
 

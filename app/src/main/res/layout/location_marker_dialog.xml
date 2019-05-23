@@ -36,19 +36,22 @@
                 android:id="@+id/location_marker_dialog_type"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="타입" />
+                android:text="타입"
+                android:textSize ="21dp"/>
 
             <TextView
                 android:id="@+id/location_marker_dialog_toilet"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="화장실 있음" />
+                android:text="화장실 있음"
+                android:textSize ="21dp"/>
 
             <TextView
                 android:id="@+id/location_marker_dialog_report"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="누적 신고횟수" />
+                android:text="누적 신고횟수"
+                android:textSize ="21dp"/>
 
             <android.support.v7.widget.AppCompatButton
                 android:id="@+id/location_marker_dialog_reportButton"
@@ -60,17 +63,6 @@
                 android:textStyle="bold"
                 android:textColor="#FFFFFF"
                 app:backgroundTint="#000000"/>
-
-            <android.support.v7.widget.AppCompatButton
-                android:id="@+id/location_marker_dialog_reportButton2"
-                style="?android:textAppearanceSmall"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="신고하기"
-                android:textColor="#FFFFFF"
-                android:textStyle="bold"
-                app:backgroundTint="#000000" />
 
         </LinearLayout>
     </ScrollView>

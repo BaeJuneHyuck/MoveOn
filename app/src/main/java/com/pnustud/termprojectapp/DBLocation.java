@@ -1,6 +1,7 @@
 package com.pnustud.termprojectapp;
 
 public class DBLocation {
+    private int id;
     private  String name;
     private  Double latitude;
     private  Double longitude;
@@ -12,6 +13,7 @@ public class DBLocation {
 
     public DBLocation(DBLocation dl) {
         this.name = dl.name;
+        this.id = dl.id;
         this.latitude = dl.latitude;
         this.longitude = dl.longitude;
         this.toilet = dl.toilet;
@@ -19,7 +21,8 @@ public class DBLocation {
         this.report = dl.report;
     }
 
-    public DBLocation(String name, Double latitude, Double longitude, int toilet, int type, int report) {
+    public DBLocation(int id, String name, Double latitude, Double longitude, int toilet, int type, int report) {
+        this.id = id;
         this.name = name;
         this.latitude = latitude;
         this.longitude = longitude;
@@ -74,5 +77,13 @@ public class DBLocation {
 
     public void setReport(int report) {
         this.report = report;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 }
