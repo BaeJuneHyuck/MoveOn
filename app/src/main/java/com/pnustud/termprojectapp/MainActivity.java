@@ -21,6 +21,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.view.ContextThemeWrapper;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -69,9 +70,9 @@ public class MainActivity extends AppCompatActivity
     private Location currentLocation;
     private LocationManager mLocationManager;
     private static final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
-    private static boolean is_logined;
-    private String logined_userId;
-    private String logined_userNick = "Guest";
+    private static boolean isLogined;
+    private String loginedUserId;
+    private String loginedUserNick = "Guest";
     private NavigationView navigationView;
     private EditText searchBox;
     private double lat;
@@ -79,7 +80,7 @@ public class MainActivity extends AppCompatActivity
     private SharedPreferences preference_login_data;
     private int backButtonCount = 0;
     private ImageButton FilterButton;
-    private boolean filterToilet = false; // false면 화장실 상관 안함 , true면 화장실 있는 장소만 출력
+    private boolean filterToilet = true;
     private boolean[] filterType = new boolean[8];// 0~6
 
     @Override
@@ -107,9 +108,7 @@ public class MainActivity extends AppCompatActivity
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-
-        // 필터 관련 설정//
-
+        // 필터(팝업메뉴) 관련 설정//
         for(int i = 0 ; i<7;i++){
             filterType[i] = true;
         }
@@ -118,7 +117,8 @@ public class MainActivity extends AppCompatActivity
         FilterButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                PopupMenu popup = new PopupMenu(MainActivity.this, FilterButton);
+                Context wrapper = new ContextThemeWrapper(getApplicationContext(), R.style.PopupMenu);
+                PopupMenu popup = new PopupMenu(wrapper, FilterButton);
                 popup.getMenuInflater().inflate(R.menu.popup_menu, popup.getMenu());
 
                 MenuItem FilterToilet = popup.getMenu().findItem(R.id.Filter_Toilet);
@@ -194,6 +194,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
+
         mMap = googleMap;
 
         mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
@@ -222,29 +223,17 @@ public class MainActivity extends AppCompatActivity
             }
         }, 30000);
 
-
         // check auto login
-        //preference_login_data = PreferenceManager.getDefaultSharedPreferences(this);
         preference_login_data = this.getSharedPreferences("sFile",MODE_PRIVATE);
         if(preference_login_data.getBoolean("autologin", false)){
             String savedEmail = preference_login_data.getString("email", "");
             String savedPass = preference_login_data.getString("password", "");
             autoLogin(savedEmail, savedPass, this);
-            /*
-            if(autoLogin(savedEmail, savedPass, this)){
-
-                Log.d("AutoTest","자동로그인 성공!");
-                Toast.makeText(this, "자동로그인 완료:" + logined_userNick, Toast.LENGTH_LONG).show();
-                loginSuccess();
-            }else{
-                Log.d("AutoTest","자동로그인 실패!");
-                Toast.makeText(this, "자동로그인에 실패 하였습니다.", Toast.LENGTH_LONG).show();
-            }*/
-
         }
     }
 
     public void initMap(){
+
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) ==
                 PackageManager.PERMISSION_GRANTED &&
                 ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) ==
@@ -271,6 +260,7 @@ public class MainActivity extends AppCompatActivity
 
             Toast.makeText(this, "request", Toast.LENGTH_LONG).show();
         }
+
     }
 
     @Override
@@ -349,13 +339,13 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_login) {
-            if(is_logined){
+            if(isLogined){
                 logout();
             }else{
                 callLoginDialog();
             }
         } else if (id == R.id.nav_register) {
-            if(is_logined){
+            if(isLogined){
                 locationRegister();
             }else{
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -369,7 +359,7 @@ public class MainActivity extends AppCompatActivity
             // MOVEON 그림이랑 같이 전송되게 하고싶은데 그건 좀 어려운듯
             Intent sendIntent = new Intent();
             sendIntent.setAction(Intent.ACTION_SEND);
-            sendIntent.putExtra(Intent.EXTRA_TEXT,  logined_userNick +"님의 현재 위치 : "+lat + ", "+ lng + "\n http://skh2929209.cafe24.com/Login.php");
+            sendIntent.putExtra(Intent.EXTRA_TEXT,  loginedUserNick +"님의 현재 위치 : "+lat + ", "+ lng + "\n http://skh2929209.cafe24.com/Login.php");
             sendIntent.setType("text/plain");
             startActivity(Intent.createChooser(sendIntent, getResources().getText(R.string.send_to)));
         }else if (id == R.id.nav_setting) {
@@ -422,9 +412,9 @@ public class MainActivity extends AppCompatActivity
                             boolean success = jsonResponse.getBoolean("success");
                             if(success){
 
-                                is_logined  = true;
-                                logined_userId = jsonResponse.getString("userId");
-                                logined_userNick = jsonResponse.getString("userNick");
+                                isLogined  = true;
+                                loginedUserId = jsonResponse.getString("userId");
+                                loginedUserNick = jsonResponse.getString("userNick");
                                 if(checkbox_remain.isChecked()){
                                     SharedPreferences.Editor editor = preference_login_data.edit();
                                     editor.putBoolean("autologin",true);
@@ -436,7 +426,7 @@ public class MainActivity extends AppCompatActivity
                                 loginSuccess();
                             }
                             else{
-                                is_logined  = false;
+                                isLogined  = false;
                                 AlertDialog.Builder builder = new AlertDialog.Builder(context);
                                 builder.setMessage("잘못된 이메일이나 비밀번호입니다")
                                         .setNegativeButton("확인", null)
@@ -464,7 +454,7 @@ public class MainActivity extends AppCompatActivity
     private boolean autoLogin(final String userId, final String userPassword, final Context context){
 
         Log.d("AutoTest","AUTOLOGIN 호출");
-        is_logined  = false;
+        isLogined  = false;
         Response.Listener<String> responseListener = new Response.Listener<String>(){
 
             @Override
@@ -473,15 +463,15 @@ public class MainActivity extends AppCompatActivity
                     JSONObject jsonResponse = new JSONObject(response);
                     boolean success = jsonResponse.getBoolean("success");
                     if(success){
-                        logined_userId = jsonResponse.getString("userId");
-                        logined_userNick = jsonResponse.getString("userNick");
-                        Log.d("AutoTest","JSON 성공!" + logined_userNick);
-                        is_logined  = true;
+                        loginedUserId = jsonResponse.getString("userId");
+                        loginedUserNick = jsonResponse.getString("userNick");
+                        Log.d("AutoTest","JSON 성공!" + loginedUserNick);
+                        isLogined  = true;
                         loginSuccess();
                     }
                     else{
                         Log.d("AutoTest","JSON 실패!");
-                        is_logined  = false;
+                        isLogined  = false;
                     }
                 }
                 catch(Exception e)
@@ -494,8 +484,8 @@ public class MainActivity extends AppCompatActivity
         RequestQueue queue = Volley.newRequestQueue(context);
         queue.add(loginRequest);
 
-        Log.d("AutoTest","AutoLogin()  Return : " + is_logined);
-        return is_logined;
+        Log.d("AutoTest","AutoLogin()  Return : " + isLogined);
+        return isLogined;
     }
 
     private void loginSuccess(){
@@ -507,14 +497,14 @@ public class MainActivity extends AppCompatActivity
         // 메세지를 출력
         View headerView = navigationView.getHeaderView(0);
         TextView emailText = (TextView) headerView.findViewById(R.id.textView_print_email);
-        String string = logined_userNick + "님 안녕하세요";
+        String string = loginedUserNick + "님 안녕하세요";
 
-        Log.d("Auto","AUTOLOGIN : " + is_logined+"님 안녕하세요");
+        Log.d("Auto","AUTOLOGIN : " + isLogined+"님 안녕하세요");
         emailText.setText(string);
     }
 
     private void logout(){
-        is_logined = false;
+        isLogined = false;
         // 자동 로그인 기록을 지워줌
         preference_login_data = this.getSharedPreferences("sFile",MODE_PRIVATE);
         SharedPreferences.Editor editor = preference_login_data.edit();
@@ -635,8 +625,10 @@ public class MainActivity extends AppCompatActivity
         for(int i = 0; i < LocationList.size() ;i++){
             loc = LocationList.get(i);
             type = loc.getType();
-            if(filterToilet == true && loc.getToilet()==0)continue; // 화장실 필터 켜졋는데 건물에 화장실잇으면 출력x
-            if(!filterType[type]) continue; // 건물 종류 = type인데 filter[type] false 면 출력x
+            boolean filter = false;
+            if(filterToilet == true && loc.getToilet()==1)filter=true; // 화장실 필터 켜졋고 화장실이 있는건물일 경우 출력
+            if(filterType[type]) filter = true; // 필터 켜진 type의 건물일경우 출력
+            if(!filter)continue;    //위 의 경우가 아닌경우 출력 안함
             switch (type){
                 case 0:
                     color = BitmapDescriptorFactory.HUE_RED;
@@ -726,7 +718,7 @@ public class MainActivity extends AppCompatActivity
             public void onClick(View v) {
 
                 myDialog.dismiss();
-                if(is_logined){
+                if(isLogined){
                     Response.Listener<String> ReportListener = new Response.Listener<String>() {
                         @Override
                         public void onResponse(String response) {
@@ -753,7 +745,7 @@ public class MainActivity extends AppCompatActivity
     }
 
 
-    // 이하 4개는 LocationListener implements용
+    // 이하 4개는 LocationListener implements 하기위해서 선언만 해둠
     @Override
     public void onLocationChanged(Location location) {
         currentLocation = location;
