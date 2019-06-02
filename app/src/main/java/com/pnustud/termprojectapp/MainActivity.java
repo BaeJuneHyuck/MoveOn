@@ -6,6 +6,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
@@ -31,6 +33,8 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.PopupMenu;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -42,6 +46,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -50,7 +55,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
@@ -70,6 +77,9 @@ public class MainActivity extends AppCompatActivity
     private double lng;
     private SharedPreferences preference_login_data;
     private int backButtonCount = 0;
+    private ImageButton FilterButton;
+    private boolean filterToilet = false; // false면 화장실 상관 안함 , true면 화장실 있는 장소만 출력
+    private boolean[] filterType = new boolean[8];// 0~6
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,6 +106,37 @@ public class MainActivity extends AppCompatActivity
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
+        for(int i = 0 ; i<7;i++){
+            filterType[i] = true;
+        }
+
+        FilterButton = (ImageButton)findViewById(R.id.Button_Filter);
+        FilterButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                PopupMenu popup = new PopupMenu(MainActivity.this, FilterButton);
+                popup.getMenuInflater().inflate(R.menu.popup_menu, popup.getMenu());
+
+                MenuItem FilterToilet = popup.getMenu().findItem(R.id.Filter_Toilet);
+                if(filterToilet)FilterToilet.setChecked(true);
+                else FilterToilet.setChecked(false);
+
+                for(int i = 1 ; i< 8; i++){
+                    MenuItem item = popup.getMenu().getItem(i);
+                    item.setChecked(filterType[i-1]);
+                }
+                popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                    public boolean onMenuItemClick(MenuItem item) {
+                        if(item.getOrder() == 0)  filterToilet = !filterToilet;
+                        else filterType[item.getOrder() - 1] = !filterType[item.getOrder() - 1];
+                        PrintMarkers();
+                        return true;
+                    }
+                });
+                popup.show();
+            }
+        });
+
         searchBox.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
@@ -112,6 +153,39 @@ public class MainActivity extends AppCompatActivity
                 return false;
             }
         });
+        init_input_search();
+    }
+
+    private void init_input_search(){
+        searchBox.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                String search = searchBox.getText().toString();
+                if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                    //performSearch();
+
+                    geoLocate();
+                }
+                return false;
+            }
+        });
+    }
+    private void geoLocate(){
+        String searchString = searchBox.getText().toString();
+
+        Geocoder geocoder =  new Geocoder(MainActivity.this);
+        List<Address> list =  new ArrayList<>();
+        try{
+            list = geocoder.getFromLocationName(searchString,1);
+
+        }catch(IOException e){
+
+        }
+        if(list.size() > 0 ){
+            Address address= list.get(0);
+            Toast.makeText(this,"geoLocate : " + address.toString() , Toast.LENGTH_LONG).show();
+            Log.d("ks","geoLocate : " + address.toString());
+        }
     }
 
     @Override
@@ -133,16 +207,16 @@ public class MainActivity extends AppCompatActivity
         initMap();
         mMap.setOnMarkerClickListener(this);
 
-        PrintMarkers();
+        MapUpdate();
         final Handler ha=new Handler();
         ha.postDelayed(new Runnable() {
 
             @Override
             public void run() {
                 MapUpdate();
-                ha.postDelayed(this, 15000);
+                ha.postDelayed(this, 30000);
             }
-        }, 15000);
+        }, 30000);
 
 
         // check auto login
@@ -532,7 +606,6 @@ public class MainActivity extends AppCompatActivity
                         temp.setReport(jsonObject.getInt("report"));
                         LocationList.add(new DBLocation(temp));
                     }
-                    mMap.clear();
                     PrintMarkers();
                 }catch (Exception e){
                     e.printStackTrace();
@@ -546,14 +619,45 @@ public class MainActivity extends AppCompatActivity
     }
 
     void PrintMarkers(){
-        DBLocation loc;
+        mMap.clear();
+        float color;
+        int type;
 
+        DBLocation loc;
         for(int i = 0; i < LocationList.size() ;i++){
             loc = LocationList.get(i);
+            type = loc.getType();
+            if(filterToilet == true && loc.getToilet()==0)continue; // 화장실 필터 켜졋는데 건물에 화장실잇으면 출력x
+            if(!filterType[type]) continue; // 건물 종류 = type인데 filter[type] false 면 출력x
+            switch (type){
+                case 0:
+                    color = BitmapDescriptorFactory.HUE_RED;
+                    break;
+                case 1:
+                    color = BitmapDescriptorFactory.HUE_VIOLET;
+                    break;
+                case 2:
+                    color = BitmapDescriptorFactory.HUE_YELLOW;
+                    break;
+                case 3:
+                    color = BitmapDescriptorFactory.HUE_ORANGE;
+                    break;
+                case 4:
+                    color = BitmapDescriptorFactory.HUE_GREEN;
+                    break;
+                case 5:
+                    color = BitmapDescriptorFactory.HUE_CYAN;
+                    break;
+                default:
+                    color = BitmapDescriptorFactory.HUE_AZURE;
+                    break;
+            }
+
             LatLng latlng = new LatLng(loc.getLatitude(),loc.getLongitude());
             Marker newmarker = mMap.addMarker(new MarkerOptions()
                     .position(latlng)
                     .title(loc.getName())
+                    .icon(BitmapDescriptorFactory.defaultMarker(color))
             );
             newmarker.setTag(i);
         }

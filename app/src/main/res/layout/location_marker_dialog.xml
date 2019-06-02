@@ -14,10 +14,10 @@
     <!-- Login progress -->
 
     <ScrollView
-        android:layout_marginTop="30dp"
-        android:id="@+id/login_form"
+        android:id="@+id/wrapperform"
         android:layout_width="match_parent"
-        android:layout_height="180dp">
+        android:layout_height="180dp"
+        android:layout_marginTop="30dp">
 
         <LinearLayout
             android:id="@+id/form"
@@ -30,39 +30,55 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="이름"
-                android:textSize ="25dp"/>
+                android:textSize="25dp" />
 
             <TextView
                 android:id="@+id/location_marker_dialog_type"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="타입"
-                android:textSize ="21dp"/>
+                android:textSize="21dp" />
 
             <TextView
                 android:id="@+id/location_marker_dialog_toilet"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="화장실 있음"
-                android:textSize ="21dp"/>
+                android:textSize="21dp" />
 
             <TextView
                 android:id="@+id/location_marker_dialog_report"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="누적 신고횟수"
-                android:textSize ="21dp"/>
+                android:textSize="21dp" />
 
-            <android.support.v7.widget.AppCompatButton
-                android:id="@+id/location_marker_dialog_reportButton"
-                style="?android:textAppearanceSmall"
+            <LinearLayout
+                android:id="@+id/form2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="신고하기"
-                android:textStyle="bold"
-                android:textColor="#FFFFFF"
-                app:backgroundTint="#000000"/>
+                android:gravity="right"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/imageView3"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:layout_marginTop="16dp"
+                    android:layout_weight="0"
+                    app:srcCompat="@drawable/siren" />
+
+                <android.support.v7.widget.AppCompatButton
+                    android:id="@+id/location_marker_dialog_reportButton"
+                    style="?android:textAppearanceSmall"
+                    android:layout_width="80dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="신고하기"
+                    android:textColor="#FFFFFF"
+                    android:textStyle="bold"
+                    app:backgroundTint="#000000" />
+            </LinearLayout>
 
         </LinearLayout>
     </ScrollView>

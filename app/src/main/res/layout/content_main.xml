@@ -16,5 +16,19 @@
         android:layout_alignParentTop="true"
         class="com.google.android.gms.maps.SupportMapFragment" />
 
+    <ImageButton
+        android:id="@+id/Button_Filter"
+        android:layout_width="43dp"
+        android:layout_height="43dp"
+
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="10dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/menu"
+        android:text="Button"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:background="@drawable/border_box"
+        android:radius="20dp"/>
 
 </android.support.constraint.ConstraintLayout>

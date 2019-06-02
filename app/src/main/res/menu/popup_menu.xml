@@ -1,0 +1,58 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+    <group android:checkableBehavior="all">
+        <item
+            android:id="@+id/Filter_Toilet"
+            android:title="장애인 화장실"
+            android:textColor="#000000"
+            android:itemBackground ="@drawable/loading_color"
+            android:orderInCategory="0"/>
+        <item
+            android:id="@+id/Filter_Restaurant"
+            android:title="음식점"
+            android:textColor="#000000"
+            android:itemBackground ="@drawable/loading_color"
+            android:orderInCategory="1"/>
+
+        <item
+            android:id="@+id/Filter_Cafe"
+            android:title="카페"
+            android:textColor="#000000"
+            android:itemBackground ="@drawable/loading_color"
+            android:orderInCategory="2"/>
+
+        <item
+            android:id="@+id/Filter_Library"
+            android:title="도서관"
+            android:textColor="#000000"
+            android:itemBackground ="@drawable/loading_color"
+            android:orderInCategory="3"/>
+
+        <item
+            android:id="@+id/Filter_Hospital"
+            android:title="병원"
+            android:textColor="#000000"
+            android:itemBackground ="@drawable/loading_color"
+            android:orderInCategory="4"/>
+
+        <item
+            android:id="@+id/Filter_Bank"
+            android:title="은행"
+            android:textColor="#000000"
+            android:itemBackground ="@drawable/loading_color"
+            android:orderInCategory="5"/>
+
+        <item
+            android:id="@+id/Filter_Park"
+            android:title="공원"
+            android:textColor="#000000"
+            android:itemBackground ="@drawable/loading_color"
+            android:orderInCategory="6"/>
+        <item
+            android:id="@+id/Filter_ETC"
+            android:title="기타"
+            android:textColor="#000000"
+            android:itemBackground ="@drawable/loading_color"
+            android:orderInCategory="7"/>
+    </group>
+
+</menu>
