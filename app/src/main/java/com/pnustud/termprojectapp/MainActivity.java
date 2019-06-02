@@ -9,6 +9,7 @@ import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -60,12 +61,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
+        implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, GoogleMap.OnMarkerClickListener, LocationListener {
 
     private ArrayList<DBLocation> LocationList;
     private ArrayList<Marker> MarkerList;
     private GoogleMap mMap;
-    private Location loc;
+    private Location currentLocation;
     private LocationManager mLocationManager;
     private static final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private static boolean is_logined;
@@ -106,6 +107,9 @@ public class MainActivity extends AppCompatActivity
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
+
+        // 필터 관련 설정//
+
         for(int i = 0 ; i<7;i++){
             filterType[i] = true;
         }
@@ -135,7 +139,7 @@ public class MainActivity extends AppCompatActivity
                 });
                 popup.show();
             }
-        });
+        }); // 필터 설정 끝//
 
         searchBox.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
@@ -246,17 +250,21 @@ public class MainActivity extends AppCompatActivity
                 ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) ==
                         PackageManager.PERMISSION_GRANTED) {
 
-            loc = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+            mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
+                    5000, 1, this);
+            // 5초마다 또는 1미터 이동될때마다 location 새로고침 설정
 
-            lat = loc.getLatitude();
-            lng = loc.getLongitude();
-            LatLng SEOUL = new LatLng(lat,lng);
+            currentLocation = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 
-            mMap.moveCamera(CameraUpdateFactory.newLatLng(SEOUL));
+            // 초기위치 얻어와서 지도 화면을 현재 위치로 이동
+            lat = currentLocation.getLatitude();
+            lng = currentLocation.getLongitude();
+            LatLng CurrentLocation = new LatLng(lat,lng);
+            mMap.moveCamera(CameraUpdateFactory.newLatLng(CurrentLocation));
             mMap.animateCamera(CameraUpdateFactory.zoomTo(17));
-
-            Toast.makeText(this, lat +","+ lng, Toast.LENGTH_LONG).show();
         } else {
+            // 허가 없으면 요청하기
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                     MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
@@ -742,5 +750,29 @@ public class MainActivity extends AppCompatActivity
         Window window = myDialog.getWindow();
         window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.WRAP_CONTENT);
         return false;
+    }
+
+
+    // 이하 4개는 LocationListener implements용
+    @Override
+    public void onLocationChanged(Location location) {
+        currentLocation = location;
+        lat = location.getLatitude();
+        lng = location.getLongitude();
+    }
+
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+
+    }
+
+    @Override
+    public void onProviderEnabled(String provider) {
+
+    }
+
+    @Override
+    public void onProviderDisabled(String provider) {
+
     }
 }
