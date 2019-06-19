@@ -52,6 +52,8 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -83,11 +85,86 @@ public class MainActivity extends AppCompatActivity
     private boolean filterToilet = true;
     private boolean[] filterType = new boolean[8];// 0~6
 
+
+// Dijikstra value
+    private static int INF = 9999999;
+    private static final int NO_PARENT = -1;
+
+
+    //임시
+    public double[][] place_info = {{35.231427, 129.082265},{35.231624, 129.081460},{35.231526, 129.081392}
+            ,{35.231476, 129.081193} , {35.231666, 129.080700}, {35.231826, 129.080297}
+            ,{35.231524, 129.080126} , {35.232602, 129.080700} , {35.232874, 129.080743} , {35.233116, 129.080689}
+            ,{35.233421, 129.080785},{35.232871, 129.082108},{35.233136, 129.082175}
+            ,{35.233563, 129.082308},{35.233740, 129.082442},{35.234058, 129.081082}
+            ,{35.233729, 129.079521},{35.233764, 129.079333},{35.233733, 129.079108},{35.233803, 129.078663}};
+    public int[][] adjacencyMatrix;
+    private double dest_lat;
+    private double dest_lng;
+
+    private void pre_process(){
+        adjacencyMatrix = new int[20][20];
+        for(int i =0 ; i < 20 ; ++i){
+            for(int j=0; j<20; ++j){
+                adjacencyMatrix[i][j] = INF;
+            }
+        }
+        adjacencyMatrix[0][1] =5;
+        adjacencyMatrix[1][0]= 5;
+        adjacencyMatrix[1][2] =1;
+        adjacencyMatrix[2][1] =1;
+        adjacencyMatrix[2][3] =1;
+        adjacencyMatrix[3][2] = 1;
+        adjacencyMatrix[3][4] = 3;
+        adjacencyMatrix[4][3] = 3;
+
+        adjacencyMatrix[4][5] = 2;
+        adjacencyMatrix[5][4] = 2;
+        adjacencyMatrix[5][6] = 2;
+        adjacencyMatrix[6][5] = 2;
+        adjacencyMatrix[5][7] = 13;
+        adjacencyMatrix[7][5] =13;
+
+        adjacencyMatrix[7][8] = 1;
+        adjacencyMatrix[8][7] = 1;
+        adjacencyMatrix[8][9] =1;
+        adjacencyMatrix[9][8] = 1;
+
+        adjacencyMatrix[9][10] = 2;
+        adjacencyMatrix[10][9] =2;
+
+        adjacencyMatrix[1][11] = 12;
+        adjacencyMatrix[11][1] = 12;
+        adjacencyMatrix[11][12] =2;
+        adjacencyMatrix[12][11] =2;
+
+        adjacencyMatrix[12][13] =3;
+        adjacencyMatrix[13][12] =3;
+        adjacencyMatrix[13][14]=1;
+        adjacencyMatrix[14][13]=1;
+
+        adjacencyMatrix[14][15]=7;
+        adjacencyMatrix[15][14]=7;
+        adjacencyMatrix[10][12]=7;
+        adjacencyMatrix[12][10]=7;
+
+        adjacencyMatrix[10][16]=9;
+        adjacencyMatrix[16][10]=9;
+
+        adjacencyMatrix[16][17]=1;
+        adjacencyMatrix[17][16]=1;
+        adjacencyMatrix[17][18]=1;
+        adjacencyMatrix[18][17]=1;
+        adjacencyMatrix[18][19]=3;
+        adjacencyMatrix[19][18]=3;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        pre_process();
         LocationList = new ArrayList<>();
         MarkerList = new ArrayList<>();
         searchBox = findViewById(R.id.editSearch2);
@@ -118,7 +195,7 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View v) {
                 Context wrapper = new ContextThemeWrapper(getApplicationContext(), R.style.PopupMenu);
-                PopupMenu popup = new PopupMenu(wrapper, FilterButton);
+                final PopupMenu popup = new PopupMenu(wrapper, FilterButton);
                 popup.getMenuInflater().inflate(R.menu.popup_menu, popup.getMenu());
 
                 MenuItem FilterToilet = popup.getMenu().findItem(R.id.Filter_Toilet);
@@ -129,6 +206,8 @@ public class MainActivity extends AppCompatActivity
                     MenuItem item = popup.getMenu().getItem(i);
                     item.setChecked(filterType[i-1]);
                 }
+                popup.show();
+
                 popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                     public boolean onMenuItemClick(MenuItem item) {
                         if(item.getOrder() == 0)  filterToilet = !filterToilet;
@@ -141,6 +220,7 @@ public class MainActivity extends AppCompatActivity
             }
         }); // 필터 설정 끝//
 
+        /*
         searchBox.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
@@ -157,6 +237,7 @@ public class MainActivity extends AppCompatActivity
                 return false;
             }
         });
+*/
         init_input_search();
     }
 
@@ -166,33 +247,229 @@ public class MainActivity extends AppCompatActivity
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 String search = searchBox.getText().toString();
                 if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                    //performSearch();
-
+                    MapUpdate();
                     geoLocate();
                 }
                 return false;
             }
         });
     }
-    private void geoLocate(){
+
+    private void geoLocate() {
         String searchString = searchBox.getText().toString();
 
-        Geocoder geocoder =  new Geocoder(MainActivity.this);
-        List<Address> list =  new ArrayList<>();
-        try{
-            list = geocoder.getFromLocationName(searchString,1);
+        Geocoder geocoder = new Geocoder(MainActivity.this);
+        List<Address> list = new ArrayList<>();
+        try {
+            list = geocoder.getFromLocationName(searchString, 1);
 
-        }catch(IOException e){
+        } catch (IOException e) {
 
         }
-        if(list.size() > 0 ){
-            Address address= list.get(0);
-            Toast.makeText(this,"geoLocate : " + address.toString() , Toast.LENGTH_LONG).show();
-            Log.d("ks","geoLocate : " + address.toString());
+        if (list.size() > 0) {
+            Address address = list.get(0);
+            //Toast.makeText(this, "geoLocate : " + address.toString(), Toast.LENGTH_LONG).show();
+            Log.d("ks", "geoLocate : " + address.toString());
+            dest_lat = list.get(0).getLatitude();
+            dest_lng = list.get(0).getLongitude();
+
+            mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(dest_lat, dest_lng)));
+            double[] dest_info = {dest_lat, dest_lng};
+            double[] start_info = {lat, lng};
+            int dest_node_num = find_closest_node(place_info, dest_info);
+            int start_node_num = find_closest_node(place_info, start_info);
+            //Toast.makeText(this, dest_node_num + " is selected ", Toast.LENGTH_LONG).show();
+            List<Integer> pathToGoal = dijkstra(adjacencyMatrix, start_node_num, dest_node_num);
+            addPolylinesToMap(pathToGoal);
+            draw_goal_node(place_info[dest_node_num]);
+            draw_goal_node(place_info[start_node_num]);
         }
     }
 
-    @Override
+    private int find_closest_node(double[][] mPlace_info,double[] cur_node_info){
+        double min_dist = 999999;
+        int closest_node=-1;
+        for(int i = 0 ; i < mPlace_info.length ; ++i){
+            double lat_diff = mPlace_info[i][0] - cur_node_info[0];
+            double lng_diff = mPlace_info[i][1] - cur_node_info[1];
+            double lat_sqr = lat_diff*lat_diff;
+            double lng_sqr = lng_diff*lng_diff;
+            //mMap.addMarker(new MarkerOptions().position(new LatLng(mPlace_info[i][0],mPlace_info[i][1])));
+            double cur_dist_diff = lat_sqr + lng_sqr;
+            if(min_dist > cur_dist_diff){
+                closest_node = i;
+                min_dist = cur_dist_diff;
+            }
+        }
+        return closest_node;
+    }
+
+    //****** 6/10
+    private void addPolylinesToMap(List<Integer> pathToGoal){
+        List<LatLng> newPathToGoal = new ArrayList<>();
+        for(Integer cur_node : pathToGoal){
+            double cur_lat = place_info[cur_node][0];
+            double cur_lng = place_info[cur_node][1];
+            newPathToGoal.add(new LatLng(cur_lat,cur_lng));
+        }
+        Polyline polyline = mMap.addPolyline(new PolylineOptions().addAll(newPathToGoal));
+        polyline.setColor(ContextCompat.getColor(this,R.color.dark_gray));
+    }
+
+
+    // Function that implements Dijkstra's
+    // single source shortest path
+    // algorithm for a graph represented
+    // using adjacency matrix
+    // representation
+    private  List<Integer> dijkstra(int[][] adjacencyMatrix,
+                                    int startVertex,int goalVertex) {
+        List<Integer> pathToGoal = new ArrayList<>();
+        int nVertices = adjacencyMatrix[0].length;
+
+        // shortestDistances[i] will hold the
+        // shortest distance from src to i
+        int[] shortestDistances = new int[nVertices];
+
+        // added[i] will true if vertex i is
+        // included / in shortest path tree
+        // or shortest distance from src to
+        // i is finalized
+        boolean[] added = new boolean[nVertices];
+
+        // Initialize all distances as+
+        // INFINITE and added[] as false
+        for (int vertexIndex = 0; vertexIndex < nVertices;
+             vertexIndex++) {
+            shortestDistances[vertexIndex] = Integer.MAX_VALUE;
+            added[vertexIndex] = false;
+        }
+
+        // Distance of source vertex from
+        // itself is always 0
+        shortestDistances[startVertex] = 0;
+
+        // Parent array to store shortest
+        // path tree
+        int[] parents = new int[nVertices];
+
+        // The starting vertex does not
+        // have a parent
+        parents[startVertex] = NO_PARENT;
+
+        // Find shortest path for all
+        // vertices
+        for (int i = 1; i < nVertices; i++) {
+
+            // Pick the minimum distance vertex
+            // from the set of vertices not yet
+            // processed. nearestVertex is
+            // always equal to startNode in
+            // first iteration.
+            int nearestVertex = -1;
+            int shortestDistance = Integer.MAX_VALUE;
+            for (int vertexIndex = 0;
+                 vertexIndex < nVertices;
+                 vertexIndex++) {
+                if (!added[vertexIndex] &&
+                        shortestDistances[vertexIndex] <
+                                shortestDistance) {
+                    nearestVertex = vertexIndex;
+                    shortestDistance = shortestDistances[vertexIndex];
+                }
+            }
+
+            // Mark the picked vertex as
+            // processed
+            added[nearestVertex] = true;
+
+            // Update dist value of the
+            // adjacent vertices of the
+            // picked vertex.
+            for (int vertexIndex = 0;
+                 vertexIndex < nVertices;
+                 vertexIndex++) {
+                int edgeDistance = adjacencyMatrix[nearestVertex][vertexIndex];
+
+                if (edgeDistance > 0
+                        && ((shortestDistance + edgeDistance) <
+                        shortestDistances[vertexIndex])) {
+                    parents[vertexIndex] = nearestVertex;
+                    shortestDistances[vertexIndex] = shortestDistance +
+                            edgeDistance;
+                }
+            }
+        }
+
+        printSolution(startVertex,goalVertex, shortestDistances, parents,pathToGoal);
+        return pathToGoal;
+    }
+
+    // A utility function to print
+    // the constructed distances
+    // array and shortest paths
+    private  void printSolution(int startVertex,int goalVertex,
+                                int[] distances,
+                                int[] parents,List<Integer> pathToGoal)
+    {
+        int nVertices = distances.length;
+        System.out.print("Vertex\t Distance\tPath");
+
+        for (int vertexIndex = 0;
+             vertexIndex < nVertices;
+             vertexIndex++)
+        {
+            if (vertexIndex != startVertex && vertexIndex ==goalVertex)
+            {
+                // System.out.print("\n" + startVertex + " -> ");
+                //System.out.print(vertexIndex + " \t\t ");
+                //System.out.print(distances[vertexIndex] + "\t\t");
+                printPath(vertexIndex, parents,pathToGoal);
+
+            }
+        }
+
+    }
+
+    // Function to print shortest path
+    // from source to currentVertex
+    // using parents array
+    private void printPath(int currentVertex,
+                           int[] parents,List<Integer>pathToGoal)
+    {
+        // Base case : Source node has
+        // been processed
+        if (currentVertex == NO_PARENT)
+        {
+            //draw_goal_node(place_info[currentVertex]);
+            return;
+        }
+        /*
+        if(parents[currentVertex]==-1){
+            draw_goal_node(place_info[currentVertex]);
+        }*/
+        printPath(parents[currentVertex], parents,pathToGoal);
+        //System.out.print(currentVertex + " ");
+        pathToGoal.add(currentVertex);
+        //draw_goal_node(place_info[currentVertex]);
+    }
+    //****** 6/9
+    private void draw_goal_node(double[] mNode_info){
+ //       mMap.addMarker(new MarkerOptions().position(new LatLng(mNode_info[0] , mNode_info[1])));
+
+        DBLocation loc = new DBLocation(-1, "길찾기 검색 결과", mNode_info[0], mNode_info[1], 0, 7, 0);
+        LocationList.add(loc);
+        float color = BitmapDescriptorFactory.HUE_BLUE;
+        LatLng latlng = new LatLng(mNode_info[0] , mNode_info[1]);
+        Marker newmarker = mMap.addMarker(new MarkerOptions()
+                .position(latlng)
+                .title(loc.getName())
+                .icon(BitmapDescriptorFactory.defaultMarker(color))
+        );
+        newmarker.setTag(LocationList.size()-1);
+    }
+
+        @Override
     public void onMapReady(GoogleMap googleMap) {
 
         mMap = googleMap;
@@ -219,9 +496,9 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void run() {
                 MapUpdate();
-                ha.postDelayed(this, 30000);
+                ha.postDelayed(this, 100000);
             }
-        }, 30000);
+        }, 100000);
 
         // check auto login
         preference_login_data = this.getSharedPreferences("sFile",MODE_PRIVATE);
@@ -260,7 +537,6 @@ public class MainActivity extends AppCompatActivity
 
             Toast.makeText(this, "request", Toast.LENGTH_LONG).show();
         }
-
     }
 
     @Override
@@ -359,7 +635,7 @@ public class MainActivity extends AppCompatActivity
             // MOVEON 그림이랑 같이 전송되게 하고싶은데 그건 좀 어려운듯
             Intent sendIntent = new Intent();
             sendIntent.setAction(Intent.ACTION_SEND);
-            sendIntent.putExtra(Intent.EXTRA_TEXT,  loginedUserNick +"님의 현재 위치 : "+lat + ", "+ lng + "\n http://skh2929209.cafe24.com/Login.php");
+            sendIntent.putExtra(Intent.EXTRA_TEXT,  loginedUserNick +"님의 현재 위치 : "+lat + ", "+ lng + "\n\n http://skh2929209.cafe24.com/image.html");
             sendIntent.setType("text/plain");
             startActivity(Intent.createChooser(sendIntent, getResources().getText(R.string.send_to)));
         }else if (id == R.id.nav_setting) {
@@ -587,6 +863,8 @@ public class MainActivity extends AppCompatActivity
     void MapUpdate(){
         MarkerList.clear();
         LocationList.clear();
+        mMap.clear();
+
         Response.Listener<String> responseListener = new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
@@ -617,7 +895,6 @@ public class MainActivity extends AppCompatActivity
     }
 
     void PrintMarkers(){
-        mMap.clear();
         float color;
         int type;
 
@@ -630,26 +907,29 @@ public class MainActivity extends AppCompatActivity
             if(filterType[type]) filter = true; // 필터 켜진 type의 건물일경우 출력
             if(!filter)continue;    //위 의 경우가 아닌경우 출력 안함
             switch (type){
-                case 0:
+                case 0://음식점
                     color = BitmapDescriptorFactory.HUE_RED;
                     break;
-                case 1:
+                case 1://카페
                     color = BitmapDescriptorFactory.HUE_VIOLET;
                     break;
-                case 2:
+                case 2://도서관
                     color = BitmapDescriptorFactory.HUE_YELLOW;
                     break;
-                case 3:
+                case 3://병원
                     color = BitmapDescriptorFactory.HUE_ORANGE;
                     break;
-                case 4:
+                case 4://은행
                     color = BitmapDescriptorFactory.HUE_GREEN;
                     break;
-                case 5:
+                case 5://공원
                     color = BitmapDescriptorFactory.HUE_CYAN;
                     break;
-                default:
+                case 6://기타
                     color = BitmapDescriptorFactory.HUE_AZURE;
+                    break;
+                default:// 길찾기에서 생성된 임시 마커
+                    color = BitmapDescriptorFactory.HUE_BLUE;
                     break;
             }
 
@@ -703,8 +983,11 @@ public class MainActivity extends AppCompatActivity
             case 5:
                 typeField.setText("공원");
                 break;
-            default:
+            case 6:
                 typeField.setText("기타");
+                break;
+            default:
+                typeField.setText("검색된 마커");
                 break;
         }
         if(loc.getToilet() == 1){
