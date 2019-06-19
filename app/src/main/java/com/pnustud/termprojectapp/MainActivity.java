@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -24,9 +25,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.ContextThemeWrapper;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.SubMenu;
 import android.view.View;
 import android.view.Window;
@@ -49,9 +52,13 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.Dot;
+import com.google.android.gms.maps.model.Gap;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PatternItem;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
@@ -61,6 +68,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity
@@ -194,6 +202,13 @@ public class MainActivity extends AppCompatActivity
         FilterButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                callFIlterDialog();
+            }
+        });
+/*
+        FilterButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
                 Context wrapper = new ContextThemeWrapper(getApplicationContext(), R.style.PopupMenu);
                 final PopupMenu popup = new PopupMenu(wrapper, FilterButton);
                 popup.getMenuInflater().inflate(R.menu.popup_menu, popup.getMenu());
@@ -219,24 +234,6 @@ public class MainActivity extends AppCompatActivity
                 popup.show();
             }
         }); // 필터 설정 끝//
-
-        /*
-        searchBox.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                String search = searchBox.getText().toString();
-                if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                    //performSearch();
-                    AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                    builder.setMessage("검색기능 만들어주세요 :" +  search)
-                            .setNegativeButton("확인", null)
-                            .create()
-                            .show();
-                    return true;
-                }
-                return false;
-            }
-        });
 */
         init_input_search();
     }
@@ -273,7 +270,14 @@ public class MainActivity extends AppCompatActivity
             dest_lat = list.get(0).getLatitude();
             dest_lng = list.get(0).getLongitude();
 
-            mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(dest_lat, dest_lng)));
+//            mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(dest_lat, dest_lng)));
+
+            LatLngBounds mMapBoundary = new LatLngBounds(
+                    new LatLng( (dest_lat < lat ?  dest_lat : lat ) , (dest_lng < lng ?  dest_lng : lng))
+                    , new LatLng( ( dest_lat > lat ?  dest_lat : lat ) , (dest_lng > lng ?  dest_lng : lng)) );
+            mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(mMapBoundary,50 ));
+
+
             double[] dest_info = {dest_lat, dest_lng};
             double[] start_info = {lat, lng};
             int dest_node_num = find_closest_node(place_info, dest_info);
@@ -281,6 +285,15 @@ public class MainActivity extends AppCompatActivity
             //Toast.makeText(this, dest_node_num + " is selected ", Toast.LENGTH_LONG).show();
             List<Integer> pathToGoal = dijkstra(adjacencyMatrix, start_node_num, dest_node_num);
             addPolylinesToMap(pathToGoal);
+
+            List<Integer> a1 = new ArrayList<>() ;
+            List<Integer> a2 = new ArrayList<>() ;
+            a1.add(start_node_num);
+            a2.add(dest_node_num);
+
+            addDottedPolylinesToMap(a1,0);
+            addDottedPolylinesToMap(a2,1);
+
             draw_goal_node(place_info[dest_node_num]);
             draw_goal_node(place_info[start_node_num]);
         }
@@ -302,6 +315,26 @@ public class MainActivity extends AppCompatActivity
             }
         }
         return closest_node;
+    }
+    private static final int PATTERN_GAP_LENGTH_PX = 10;  // 1   //6/19
+    private static final Gap GAP = new Gap(PATTERN_GAP_LENGTH_PX);//6/19
+    private static final Dot DOT = new Dot();//6/19
+    private static final List<PatternItem> PATTERN_DOTTED = Arrays.asList(DOT, GAP);  // 2//6/19
+
+    private void addDottedPolylinesToMap(List<Integer> pathToGoal , int flag){
+        List<LatLng> newPathToGoal = new ArrayList<>();
+        for(Integer cur_node : pathToGoal){
+            double cur_lat = place_info[cur_node][0];
+            double cur_lng = place_info[cur_node][1];
+            newPathToGoal.add(new LatLng(cur_lat,cur_lng));
+        }
+        if (flag == 0 )
+            newPathToGoal.add(new LatLng(lat,lng));
+        else
+            newPathToGoal.add(new LatLng(dest_lat,dest_lng));
+        PolylineOptions polylineOptions = new PolylineOptions().pattern(PATTERN_DOTTED).color(Color.BLUE);
+        for(LatLng point : newPathToGoal) polylineOptions.add(point);
+        Polyline polyline = mMap.addPolyline(polylineOptions);//6/19
     }
 
     //****** 6/10
@@ -500,7 +533,17 @@ public class MainActivity extends AppCompatActivity
             }
         }, 100000);
 
-        // check auto login
+        mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener(){
+
+            public void onMapLongClick(LatLng point){
+                    Toast.makeText(MainActivity.this,
+                            point.latitude + ", " + point.longitude,
+                            Toast.LENGTH_SHORT).show();
+                }
+            });
+
+
+            // check auto login
         preference_login_data = this.getSharedPreferences("sFile",MODE_PRIVATE);
         if(preference_login_data.getBoolean("autologin", false)){
             String savedEmail = preference_login_data.getString("email", "");
@@ -644,6 +687,114 @@ public class MainActivity extends AppCompatActivity
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    public void callFIlterDialog(){
+
+        final Context context = this;
+        final Dialog myDialog = new Dialog(this);
+        myDialog.setContentView(R.layout.filter_dialog);
+
+        final CheckBox checkbox_toilet = (CheckBox) myDialog.findViewById(R.id.Filter_Toilet);
+        final CheckBox checkbox_rest = (CheckBox) myDialog.findViewById(R.id.Filter_Restaurant);
+        final CheckBox checkbox_cafe = (CheckBox) myDialog.findViewById(R.id.Filter_Cafe);
+        final CheckBox checkbox_library = (CheckBox) myDialog.findViewById(R.id.Filter_Library);
+        final CheckBox checkbox_hospital = (CheckBox) myDialog.findViewById(R.id.Filter_Hospital);
+        final CheckBox checkbox_bank = (CheckBox) myDialog.findViewById(R.id.Filter_Bank);
+        final CheckBox checkbox_park = (CheckBox) myDialog.findViewById(R.id.Filter_Park);
+        final CheckBox checkbox_etc = (CheckBox) myDialog.findViewById(R.id.Filter_ETC);
+
+        checkbox_toilet.setChecked(filterToilet);
+
+        checkbox_rest.setChecked(filterType[0]);
+        checkbox_cafe.setChecked(filterType[1]);
+        checkbox_library.setChecked(filterType[2]);
+        checkbox_hospital.setChecked(filterType[3]);
+        checkbox_bank.setChecked(filterType[4]);
+        checkbox_park.setChecked(filterType[5]);
+        checkbox_etc.setChecked(filterType[6]);
+
+        checkbox_toilet.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                filterToilet = !filterToilet;
+                mMap.clear();
+                PrintMarkers();
+            }
+        });
+        checkbox_rest.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                filterType[0] = !filterType[0];
+                mMap.clear();
+                PrintMarkers();
+            }
+        });
+
+        checkbox_cafe.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                filterType[1] = !filterType[1];
+                mMap.clear();
+                PrintMarkers();
+            }
+        });
+
+        checkbox_library.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                filterType[2] = !filterType[2];
+                mMap.clear();
+                PrintMarkers();
+            }
+        });
+
+        checkbox_hospital.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                filterType[3] = !filterType[3];
+                mMap.clear();
+                PrintMarkers();
+            }
+        });
+
+        checkbox_bank.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                filterType[4] = !filterType[4];
+                mMap.clear();
+                PrintMarkers();
+            }
+        });
+
+        checkbox_park.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                filterType[5] = !filterType[5];
+                mMap.clear();
+                PrintMarkers();
+            }
+        });
+
+        checkbox_etc.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                filterType[6] = !filterType[6];
+                mMap.clear();
+                PrintMarkers();
+            }
+        });
+
+        Window window = myDialog.getWindow();
+        window.setLayout(WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT);
+
+        WindowManager.LayoutParams lp = window.getAttributes();
+        window.setGravity(Gravity.LEFT | Gravity.TOP);
+        //lp.x = 0;
+        lp.y = 360;
+
+        myDialog.show();
+
     }
 
     private void callLoginDialog()
@@ -897,7 +1048,6 @@ public class MainActivity extends AppCompatActivity
     void PrintMarkers(){
         float color;
         int type;
-
         DBLocation loc;
         for(int i = 0; i < LocationList.size() ;i++){
             loc = LocationList.get(i);

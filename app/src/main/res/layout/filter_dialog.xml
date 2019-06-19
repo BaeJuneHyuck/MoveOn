@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:layout_gravity="center_vertical"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:background ="@drawable/loading_color">
+
+    <CheckBox
+        android:id="@+id/Filter_Toilet"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:buttonTint="@color/colorAccent"
+        android:text="장애인 화장실"
+        />
+    <CheckBox
+        android:id="@+id/Filter_Restaurant"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:buttonTint="@color/colorAccent"
+        android:text="음식점" />
+
+    <CheckBox
+        android:id="@+id/Filter_Cafe"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:buttonTint="@color/colorAccent"
+        android:text="카페"/>
+
+    <CheckBox
+        android:id="@+id/Filter_Library"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:buttonTint="@color/colorAccent"
+        android:text="도서관" />
+
+    <CheckBox
+        android:id="@+id/Filter_Hospital"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:buttonTint="@color/colorAccent"
+        android:text="병원" />
+
+    <CheckBox
+        android:id="@+id/Filter_Bank"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:buttonTint="@color/colorAccent"
+        android:text="은행" />
+
+    <CheckBox
+        android:id="@+id/Filter_Park"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:buttonTint="@color/colorAccent"
+        android:text="공원" />
+
+    <CheckBox
+        android:id="@+id/Filter_ETC"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:buttonTint="@color/colorAccent"
+        android:text="기타" />
+
+</LinearLayout>
