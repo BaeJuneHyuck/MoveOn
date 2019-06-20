@@ -51,6 +51,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.Dot;
 import com.google.android.gms.maps.model.Gap;
@@ -93,78 +94,193 @@ public class MainActivity extends AppCompatActivity
     private boolean filterToilet = true;
     private boolean[] filterType = new boolean[8];// 0~6
 
-
-// Dijikstra value
+    // Dijikstra value
     private static int INF = 9999999;
     private static final int NO_PARENT = -1;
-
-
-    //임시
-    public double[][] place_info = {{35.231427, 129.082265},{35.231624, 129.081460},{35.231526, 129.081392}
-            ,{35.231476, 129.081193} , {35.231666, 129.080700}, {35.231826, 129.080297}
-            ,{35.231524, 129.080126} , {35.232602, 129.080700} , {35.232874, 129.080743} , {35.233116, 129.080689}
-            ,{35.233421, 129.080785},{35.232871, 129.082108},{35.233136, 129.082175}
-            ,{35.233563, 129.082308},{35.233740, 129.082442},{35.234058, 129.081082}
-            ,{35.233729, 129.079521},{35.233764, 129.079333},{35.233733, 129.079108},{35.233803, 129.078663}};
+    public double[][] place_info = {{35.231275, 129.082879},{35.231386, 129.082436},{35.231637, 129.081455}
+            ,{35.231513, 129.081383} , {35.231477, 129.081204}, {35.231086, 129.081423}
+            ,{35.230803, 129.081587} , {35.230587, 129.082129} , {35.231145, 129.080469} , {35.231669, 129.080701}
+            ,{35.231823, 129.080314},{35.232585, 129.080685},{35.232882, 129.080737} //12
+            ,{35.233113, 129.080681},{35.233416, 129.080801},{35.233364, 129.081251} //15
+            ,{35.232862, 129.082085},{35.233143, 129.082157},{35.233560, 129.082301} //18
+            ,{35.233742, 129.082428},{35.233602, 129.080856},{35.234078, 129.081076} //21
+            ,{35.234185, 129.081100},{35.234312, 129.080601},{35.234550, 129.079400} //24
+            ,{35.233719, 129.079536},{35.233752, 129.079292},{35.233749, 129.079109} //27
+            ,{35.233758, 129.078925},{35.233811, 129.078678},{35.233934, 129.078020} //30
+            ,{35.234951, 129.078359},{35.235036, 129.078395},{35.234811, 129.079448} //33
+            ,{35.235883, 129.079803},{35.235691, 129.080098},{35.235323, 129.080876} //36
+            ,{35.235052, 129.081630},{35.235023, 129.081862},{35.234247, 129.081303} //39
+            ,{35.234211, 129.081898},{35.235531, 129.081866},{35.236558, 129.078873} //42
+            ,{35.234101, 129.082636},{35.236303, 129.079119}
+    };
     public int[][] adjacencyMatrix;
     private double dest_lat;
     private double dest_lng;
 
     private void pre_process(){
-        adjacencyMatrix = new int[20][20];
-        for(int i =0 ; i < 20 ; ++i){
-            for(int j=0; j<20; ++j){
+        adjacencyMatrix = new int[50][50];
+        for(int i =0 ; i < 50 ; ++i){
+            for(int j=0; j<50; ++j){
                 adjacencyMatrix[i][j] = INF;
             }
         }
-        adjacencyMatrix[0][1] =5;
-        adjacencyMatrix[1][0]= 5;
-        adjacencyMatrix[1][2] =1;
-        adjacencyMatrix[2][1] =1;
-        adjacencyMatrix[2][3] =1;
-        adjacencyMatrix[3][2] = 1;
-        adjacencyMatrix[3][4] = 3;
-        adjacencyMatrix[4][3] = 3;
+        adjacencyMatrix[0][1] =41;
+        adjacencyMatrix[1][0]= 41;
+        adjacencyMatrix[1][2] =92;
+        adjacencyMatrix[2][1] =92;
+        adjacencyMatrix[2][3] =15;
+        adjacencyMatrix[3][2] = 15;
+        adjacencyMatrix[3][4] = 17;
+        adjacencyMatrix[4][3] = 17;
 
-        adjacencyMatrix[4][5] = 2;
-        adjacencyMatrix[5][4] = 2;
-        adjacencyMatrix[5][6] = 2;
-        adjacencyMatrix[6][5] = 2;
-        adjacencyMatrix[5][7] = 13;
-        adjacencyMatrix[7][5] =13;
+        adjacencyMatrix[4][5] = 43;
+        adjacencyMatrix[5][4] = 43;
 
-        adjacencyMatrix[7][8] = 1;
-        adjacencyMatrix[8][7] = 1;
-        adjacencyMatrix[8][9] =1;
-        adjacencyMatrix[9][8] = 1;
+        adjacencyMatrix[5][3] = 45;
+        adjacencyMatrix[3][5] = 45;
 
-        adjacencyMatrix[9][10] = 2;
-        adjacencyMatrix[10][9] =2;
+        adjacencyMatrix[5][6] = 38;
+        adjacencyMatrix[6][5] = 38;
+        adjacencyMatrix[6][7] = 55;
+        adjacencyMatrix[7][6] =55;
 
-        adjacencyMatrix[1][11] = 12;
-        adjacencyMatrix[11][1] = 12;
-        adjacencyMatrix[11][12] =2;
-        adjacencyMatrix[12][11] =2;
+        adjacencyMatrix[6][7] = 110;
+        adjacencyMatrix[7][6] = 110;
 
-        adjacencyMatrix[12][13] =3;
-        adjacencyMatrix[13][12] =3;
-        adjacencyMatrix[13][14]=1;
-        adjacencyMatrix[14][13]=1;
+        adjacencyMatrix[8][9] = 61;
+        adjacencyMatrix[9][8] = 61;
 
-        adjacencyMatrix[14][15]=7;
-        adjacencyMatrix[15][14]=7;
-        adjacencyMatrix[10][12]=7;
-        adjacencyMatrix[12][10]=7;
+        adjacencyMatrix[9][4] = 50;
+        adjacencyMatrix[4][9] = 50;
 
-        adjacencyMatrix[10][16]=9;
-        adjacencyMatrix[16][10]=9;
+        adjacencyMatrix[9][10] = 40;
+        adjacencyMatrix[10][9] = 40;
 
-        adjacencyMatrix[16][17]=1;
-        adjacencyMatrix[17][16]=1;
-        adjacencyMatrix[17][18]=1;
-        adjacencyMatrix[18][17]=1;
-        adjacencyMatrix[18][19]=3;
-        adjacencyMatrix[19][18]=3;
+        adjacencyMatrix[10][11] = 91;
+        adjacencyMatrix[11][10] = 91;
+
+        adjacencyMatrix[11][12] = 31;
+        adjacencyMatrix[12][11] = 31;
+
+        adjacencyMatrix[12][13] = 27;
+        adjacencyMatrix[13][12] = 27;
+
+        adjacencyMatrix[13][14] = 33;
+        adjacencyMatrix[14][13] = 33;
+
+        adjacencyMatrix[14][15] = 39;
+        adjacencyMatrix[15][14] = 39;
+
+        adjacencyMatrix[15][17] = 87;
+        adjacencyMatrix[17][15] = 87;
+
+        adjacencyMatrix[17][18] = 49;
+        adjacencyMatrix[18][17] = 49;
+
+        adjacencyMatrix[16][17] = 33;
+        adjacencyMatrix[17][16] = 33;
+
+        adjacencyMatrix[2][16] = 145;
+        adjacencyMatrix[16][2] = 145;
+
+        adjacencyMatrix[18][19] = 23;
+        adjacencyMatrix[19][18] = 23;
+
+        adjacencyMatrix[19][21] = 128;
+        adjacencyMatrix[21][19] = 128;
+
+        adjacencyMatrix[19][43] = 42;
+        adjacencyMatrix[43][19] = 42;
+
+        adjacencyMatrix[40][43] = 70;
+        adjacencyMatrix[43][40] = 70;
+
+        adjacencyMatrix[14][20] = 20;
+        adjacencyMatrix[20][14] = 20;
+
+        adjacencyMatrix[20][21] = 55;
+        adjacencyMatrix[21][20] = 55;
+
+        adjacencyMatrix[22][21] = 12;
+        adjacencyMatrix[21][22] = 12;
+
+        adjacencyMatrix[22][39] = 21;
+        adjacencyMatrix[39][22] = 21;
+
+        adjacencyMatrix[39][40] = 53;
+        adjacencyMatrix[40][39] = 53;
+
+        adjacencyMatrix[38][40] = 90;
+        adjacencyMatrix[40][38] = 90;
+
+        adjacencyMatrix[38][41] = 56;
+        adjacencyMatrix[41][38] = 56;
+
+        adjacencyMatrix[37][38] = 20;
+        adjacencyMatrix[38][37] = 20;
+
+        adjacencyMatrix[36][37] = 76;
+        adjacencyMatrix[37][36] = 76;
+
+        adjacencyMatrix[23][36] = 113;
+        adjacencyMatrix[36][23] = 113;
+
+        adjacencyMatrix[22][23] = 45;
+        adjacencyMatrix[23][22] = 45;
+
+        adjacencyMatrix[23][24] = 114;
+        adjacencyMatrix[24][23] = 114;
+
+        adjacencyMatrix[24][33] = 30;
+        adjacencyMatrix[33][24] = 30;
+
+        adjacencyMatrix[34][33] = 121;
+        adjacencyMatrix[33][34] = 121;
+
+        adjacencyMatrix[34][35] = 30;
+        adjacencyMatrix[35][34] = 30;
+
+        adjacencyMatrix[35][36] = 83;
+        adjacencyMatrix[36][35] = 83;
+
+        adjacencyMatrix[24][27] = 92;
+        adjacencyMatrix[27][24] = 92;
+
+        adjacencyMatrix[27][26] = 16;
+        adjacencyMatrix[26][27] = 16;
+
+        adjacencyMatrix[26][25] = 20;
+        adjacencyMatrix[25][26] = 20;
+
+        adjacencyMatrix[25][14] = 100;
+        adjacencyMatrix[14][25] = 100;
+
+        adjacencyMatrix[28][27] = 14;
+        adjacencyMatrix[27][28] = 14;
+
+        adjacencyMatrix[28][29] = 27;
+        adjacencyMatrix[29][28] = 27;
+
+        adjacencyMatrix[29][30] = 61;
+        adjacencyMatrix[30][29] = 61;
+
+        adjacencyMatrix[30][31] = 117;
+        adjacencyMatrix[31][30] = 117;
+
+        adjacencyMatrix[31][32] = 9;
+        adjacencyMatrix[32][31] = 9;
+
+        adjacencyMatrix[32][33] =100 ;
+        adjacencyMatrix[33][32] = 100;
+
+        adjacencyMatrix[32][42] = 174;
+        adjacencyMatrix[42][32] = 174;
+
+        adjacencyMatrix[42][44] = 25;
+        adjacencyMatrix[44][42] = 25;
+
+        adjacencyMatrix[34][44] = 90;
+        adjacencyMatrix[44][34] = 90;
     }
 
     @Override
@@ -245,15 +361,15 @@ public class MainActivity extends AppCompatActivity
                 String search = searchBox.getText().toString();
                 if (actionId == EditorInfo.IME_ACTION_SEARCH) {
                     MapUpdate();
-                    geoLocate();
+                    geoLocate(search);
                 }
                 return false;
             }
         });
     }
 
-    private void geoLocate() {
-        String searchString = searchBox.getText().toString();
+    private void geoLocate(String searchString) {
+        //String searchString = searchBox.getText().toString();
 
         Geocoder geocoder = new Geocoder(MainActivity.this);
         List<Address> list = new ArrayList<>();
@@ -269,34 +385,36 @@ public class MainActivity extends AppCompatActivity
             Log.d("ks", "geoLocate : " + address.toString());
             dest_lat = list.get(0).getLatitude();
             dest_lng = list.get(0).getLongitude();
-
-//            mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(dest_lat, dest_lng)));
-
-            LatLngBounds mMapBoundary = new LatLngBounds(
-                    new LatLng( (dest_lat < lat ?  dest_lat : lat ) , (dest_lng < lng ?  dest_lng : lng))
-                    , new LatLng( ( dest_lat > lat ?  dest_lat : lat ) , (dest_lng > lng ?  dest_lng : lng)) );
-            mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(mMapBoundary,50 ));
-
-
-            double[] dest_info = {dest_lat, dest_lng};
-            double[] start_info = {lat, lng};
-            int dest_node_num = find_closest_node(place_info, dest_info);
-            int start_node_num = find_closest_node(place_info, start_info);
-            //Toast.makeText(this, dest_node_num + " is selected ", Toast.LENGTH_LONG).show();
-            List<Integer> pathToGoal = dijkstra(adjacencyMatrix, start_node_num, dest_node_num);
-            addPolylinesToMap(pathToGoal);
-
-            List<Integer> a1 = new ArrayList<>() ;
-            List<Integer> a2 = new ArrayList<>() ;
-            a1.add(start_node_num);
-            a2.add(dest_node_num);
-
-            addDottedPolylinesToMap(a1,0);
-            addDottedPolylinesToMap(a2,1);
-
-            draw_goal_node(place_info[dest_node_num]);
-            draw_goal_node(place_info[start_node_num]);
+            find_path(dest_lat, dest_lng);
         }
+    }
+
+    private void find_path(double destination_lat, double destination_lng){
+        mMap.clear();
+        PrintMarkers();
+        LatLngBounds mMapBoundary = new LatLngBounds(
+                new LatLng( (destination_lat < lat ?  destination_lat : lat ) , (destination_lng < lng ?  destination_lng : lng))
+                , new LatLng( ( destination_lat > lat ?  destination_lat : lat ) , (destination_lng > lng ?  destination_lng : lng)) );
+        mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(mMapBoundary,150 ));
+
+        double[] dest_info = {destination_lat, destination_lng};
+        double[] start_info = {lat, lng};
+        int dest_node_num = find_closest_node(place_info, dest_info);
+        int start_node_num = find_closest_node(place_info, start_info);
+        //Toast.makeText(this, dest_node_num + " is selected ", Toast.LENGTH_LONG).show();
+        List<Integer> pathToGoal = dijkstra(adjacencyMatrix, start_node_num, dest_node_num);
+        addPolylinesToMap(pathToGoal);
+
+        List<Integer> a1 = new ArrayList<>() ;
+        List<Integer> a2 = new ArrayList<>() ;
+        a1.add(start_node_num);
+        a2.add(dest_node_num);
+
+        addDottedPolylinesToMap(a1,0);
+        addDottedPolylinesToMap(a2,1);
+
+        draw_goal_node(place_info[dest_node_num]);
+        draw_goal_node(place_info[start_node_num]);
     }
 
     private int find_closest_node(double[][] mPlace_info,double[] cur_node_info){
@@ -536,14 +654,22 @@ public class MainActivity extends AppCompatActivity
         mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener(){
 
             public void onMapLongClick(LatLng point){
-                    Toast.makeText(MainActivity.this,
+                    /*Toast.makeText(MainActivity.this,
                             point.latitude + ", " + point.longitude,
-                            Toast.LENGTH_SHORT).show();
+                            Toast.LENGTH_SHORT).show();*/
+                DBLocation loc = new DBLocation(-1, "선택된 위치", point.latitude , point.longitude, 0, 7, 0);
+                LocationList.add(loc);
+                float color = BitmapDescriptorFactory.HUE_BLUE;
+                LatLng latlng = new LatLng(point.latitude , point.longitude);
+                Marker newmarker = mMap.addMarker(new MarkerOptions()
+                        .position(latlng)
+                        .title(loc.getName())
+                        .icon(BitmapDescriptorFactory.defaultMarker(color)));
+                newmarker.setTag(LocationList.size()-1);
                 }
-            });
+        });
 
-
-            // check auto login
+        // check auto login
         preference_login_data = this.getSharedPreferences("sFile",MODE_PRIVATE);
         if(preference_login_data.getBoolean("autologin", false)){
             String savedEmail = preference_login_data.getString("email", "");
@@ -665,7 +791,7 @@ public class MainActivity extends AppCompatActivity
             }
         } else if (id == R.id.nav_register) {
             if(isLogined){
-                locationRegister();
+                locationRegister(lat, lng);
             }else{
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setMessage("로그인이 필요한 기능입니다. 먼저 로그인 해주세요")
@@ -950,7 +1076,7 @@ public class MainActivity extends AppCompatActivity
         emailText.setText(string);
     }
 
-    private void locationRegister(){
+    private void locationRegister(final double loc_lat, final double loc_lng){
         final Context context = this;
         final Dialog myDialog = new Dialog(this);
         myDialog.setContentView(R.layout.location_register_dialog);
@@ -961,7 +1087,7 @@ public class MainActivity extends AppCompatActivity
         TextView latlngBox = (TextView)myDialog.findViewById(R.id.location_dialog_textview);
         Button registerButton = (Button)myDialog.findViewById(R.id.location_dialog_reg);
 
-        latlngBox.setText("현재 위치: " + lat + ", " + lng);
+        latlngBox.setText("대상 위치: " + loc_lat + ", " + loc_lng);
         registerButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -981,16 +1107,17 @@ public class MainActivity extends AppCompatActivity
 
                             if(success){
                                 AlertDialog.Builder builder = new AlertDialog.Builder(context);
-                                builder.setMessage("success.")
-                                        .setPositiveButton("OK", null)
+                                builder.setMessage("장소가 추가되었습니다")
+                                        .setPositiveButton("확인", null)
                                         .create()
                                         .show();
                                 myDialog.dismiss();
+                                MapUpdate();
                             }
                             else{
                                 AlertDialog.Builder builder = new AlertDialog.Builder(context);
-                                builder.setMessage("fail.")
-                                        .setNegativeButton("RETRY", null)
+                                builder.setMessage("장소추가에 실패했습니다.")
+                                        .setNegativeButton("확인", null)
                                         .create()
                                         .show();
                             }
@@ -1000,7 +1127,7 @@ public class MainActivity extends AppCompatActivity
                         }
                     }
                 };
-                LocationRegisterRequest registerRequest = new LocationRegisterRequest(locName, lat,lng,locToilet, locType, responseListener);
+                LocationRegisterRequest registerRequest = new LocationRegisterRequest(locName, loc_lat,loc_lng,locToilet, locType, responseListener);
                 RequestQueue queue = Volley.newRequestQueue(context);
                 queue.add(registerRequest);
             }
@@ -1053,33 +1180,35 @@ public class MainActivity extends AppCompatActivity
             loc = LocationList.get(i);
             type = loc.getType();
             boolean filter = false;
+            BitmapDescriptor markericon;
             if(filterToilet == true && loc.getToilet()==1)filter=true; // 화장실 필터 켜졋고 화장실이 있는건물일 경우 출력
             if(filterType[type]) filter = true; // 필터 켜진 type의 건물일경우 출력
             if(!filter)continue;    //위 의 경우가 아닌경우 출력 안함
             switch (type){
                 case 0://음식점
-                    color = BitmapDescriptorFactory.HUE_RED;
+                    markericon = BitmapDescriptorFactory.fromResource(R.drawable.icon_0_food);
                     break;
                 case 1://카페
-                    color = BitmapDescriptorFactory.HUE_VIOLET;
+                    markericon = BitmapDescriptorFactory.fromResource(R.drawable.icon_1_coffee);
                     break;
                 case 2://도서관
-                    color = BitmapDescriptorFactory.HUE_YELLOW;
+                    markericon = BitmapDescriptorFactory.fromResource(R.drawable.icon_2_library);
                     break;
                 case 3://병원
-                    color = BitmapDescriptorFactory.HUE_ORANGE;
+                    markericon = BitmapDescriptorFactory.fromResource(R.drawable.icon_3_hospital);
                     break;
                 case 4://은행
-                    color = BitmapDescriptorFactory.HUE_GREEN;
+                    markericon = BitmapDescriptorFactory.fromResource(R.drawable.icon_4_bank);
                     break;
                 case 5://공원
-                    color = BitmapDescriptorFactory.HUE_CYAN;
+                    markericon = BitmapDescriptorFactory.fromResource(R.drawable.icon_5_park);
                     break;
                 case 6://기타
-                    color = BitmapDescriptorFactory.HUE_AZURE;
+                    markericon = BitmapDescriptorFactory.fromResource(R.drawable.icon_6_etc);
                     break;
                 default:// 길찾기에서 생성된 임시 마커
                     color = BitmapDescriptorFactory.HUE_BLUE;
+                    markericon = BitmapDescriptorFactory.defaultMarker(color);
                     break;
             }
 
@@ -1087,7 +1216,7 @@ public class MainActivity extends AppCompatActivity
             Marker newmarker = mMap.addMarker(new MarkerOptions()
                     .position(latlng)
                     .title(loc.getName())
-                    .icon(BitmapDescriptorFactory.defaultMarker(color))
+                    .icon(markericon)
             );
             newmarker.setTag(i);
         }
@@ -1096,13 +1225,14 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onMarkerClick(Marker marker) {
         final TextView nameField,typeField,toiletField,reportField;
-        final Button button_report;
+        final Button button_report, button_navigation;
 
         final Context context = this;
         final Dialog myDialog = new Dialog(this);
         myDialog.setContentView(R.layout.location_marker_dialog);
 
         button_report = (Button) myDialog.findViewById(R.id.location_marker_dialog_reportButton);
+        button_navigation = (Button) myDialog.findViewById(R.id.location_marker_dialog_naviButton);
 
         nameField = (TextView) myDialog.findViewById(R.id.location_marker_dialog_name);
         typeField = (TextView) myDialog.findViewById(R.id.location_marker_dialog_type);
@@ -1113,8 +1243,12 @@ public class MainActivity extends AppCompatActivity
         int tag = (int)marker.getTag();
         DBLocation loc = LocationList.get(tag);
         final int id = loc.getId();
+        final double marker_lat = loc.getLatitude();
+        final double marker_lng = loc.getLongitude();
+        int markerType = loc.getType();
 
-        switch( loc.getType()){
+        reportField.setText("신고횟수 :" + loc.getReport()+ "회");
+        switch(markerType){
             case 0:
                 typeField.setText("음식점");
                 break;
@@ -1137,39 +1271,60 @@ public class MainActivity extends AppCompatActivity
                 typeField.setText("기타");
                 break;
             default:
-                typeField.setText("검색된 마커");
+                typeField.setText("위도 :"+loc.getLatitude());
+                reportField.setText("등록되지 않음");
                 break;
         }
         if(loc.getToilet() == 1){
             toiletField.setText("화장실 있음");
+        }else if(markerType == 7){
+            toiletField.setText("경도 :" +loc.getLongitude());
         }else{
             toiletField.setText("화장실 없음");
         }
-        reportField.setText("신고횟수 :" + loc.getReport()+ "회");
-
-        button_report.setOnClickListener(new View.OnClickListener() {
+        button_navigation.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-
                 myDialog.dismiss();
-                if(isLogined){
-                    Response.Listener<String> ReportListener = new Response.Listener<String>() {
-                        @Override
-                        public void onResponse(String response) {
-                        }
-                    };
-                    Log.d("AutoTest","ID  : " + id  +"에대해서 호출");
-                    ReportRequest reportListener = new ReportRequest(id, ReportListener);
-                    RequestQueue queue = Volley.newRequestQueue(MainActivity.this);
-                    queue.add(reportListener);
-                }else{
-                    AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                    builder.setMessage("로그인이 필요한 기능입니다. 먼저 로그인 해주세요")
-                            .setNegativeButton("확인", null)
-                            .create()
-                            .show();
-                }
+                dest_lat = marker_lat;
+                dest_lng = marker_lng;
+                find_path(marker_lat,marker_lng);
             }
         });
+
+        if(markerType == 7){
+            button_report.setText("장소등록");
+            button_report.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View v) {
+                    locationRegister(marker_lat, marker_lng);
+                    myDialog.dismiss();
+                }
+            });
+        }else{
+            button_report.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View v) {
+
+                    myDialog.dismiss();
+                    if(isLogined){
+                        Response.Listener<String> ReportListener = new Response.Listener<String>() {
+                            @Override
+                            public void onResponse(String response) {
+                            }
+                        };
+                        Log.d("AutoTest","ID  : " + id  +"에대해서 호출");
+                        ReportRequest reportListener = new ReportRequest(id, ReportListener);
+                        RequestQueue queue = Volley.newRequestQueue(MainActivity.this);
+                        queue.add(reportListener);
+                    }else{
+                        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                        builder.setMessage("로그인이 필요한 기능입니다. 먼저 로그인 해주세요")
+                                .setNegativeButton("확인", null)
+                                .create()
+                                .show();
+                    }
+                }
+            });
+
+        }
 
         myDialog.show();
         Window window = myDialog.getWindow();

@@ -61,7 +61,26 @@
                 android:orientation="horizontal">
 
                 <ImageView
-                    android:id="@+id/imageView3"
+                    android:id="@+id/imageViewNavi"
+                    android:layout_width="45dp"
+                    android:layout_height="45dp"
+                    android:layout_marginTop="16dp"
+                    android:layout_weight="0"
+                    app:srcCompat="@drawable/navigation" />
+
+                <android.support.v7.widget.AppCompatButton
+                    android:id="@+id/location_marker_dialog_naviButton"
+                    style="?android:textAppearanceSmall"
+                    android:layout_width="80dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="경로찾기"
+                    android:textColor="#FFFFFF"
+                    android:textStyle="bold"
+                    app:backgroundTint="#000000" />
+
+                <ImageView
+                    android:id="@+id/imageViewSiren"
                     android:layout_width="50dp"
                     android:layout_height="50dp"
                     android:layout_marginTop="16dp"
@@ -74,6 +93,7 @@
                     android:layout_width="80dp"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
+                    android:layout_weight="0"
                     android:text="신고하기"
                     android:textColor="#FFFFFF"
                     android:textStyle="bold"
