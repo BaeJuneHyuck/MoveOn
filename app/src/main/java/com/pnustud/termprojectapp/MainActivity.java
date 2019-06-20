@@ -150,11 +150,11 @@ public class MainActivity extends AppCompatActivity
         adjacencyMatrix[8][9] = 61;
         adjacencyMatrix[9][8] = 61;
 
-        adjacencyMatrix[9][4] = 50;
-        adjacencyMatrix[4][9] = 50;
+        adjacencyMatrix[9][4] = 100;
+        adjacencyMatrix[4][9] = 100;
 
-        adjacencyMatrix[9][10] = 40;
-        adjacencyMatrix[10][9] = 40;
+        adjacencyMatrix[9][10] = 80;
+        adjacencyMatrix[10][9] = 80;
 
         adjacencyMatrix[10][11] = 91;
         adjacencyMatrix[11][10] = 91;
