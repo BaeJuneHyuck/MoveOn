@@ -16,7 +16,6 @@ PNU CSE Student Term Project
 <details>
 <summary>검색으로 길찾기</summary>
  <img src="https://github.com/BaeJuneHyuck/MoveOn/blob/master/gif/navi2.gif"" alt="hi" class="inline"/>
-![navigation](https://github.com/BaeJuneHyuck/MoveOn/blob/master/gif/navi1.gif?raw=true)
 </details>
 
 <details>
