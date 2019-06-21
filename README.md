@@ -1,7 +1,17 @@
 # MoveOn
 PNU CSE Student Term Project
 
-*작업공유를 해보아요*
+# Preview
+
+![init](hhttps://github.com/BaeJuneHyuck/MoveOn/blob/master/gif/init.gif?raw=true)
+
+![init](hhttps://github.com/BaeJuneHyuck/MoveOn/blob/master/gif/locationadd.gif?raw=true)
+
+![init](hhttps://github.com/BaeJuneHyuck/MoveOn/blob/master/gif/navi1.gif?raw=true)
+
+![init](hhttps://github.com/BaeJuneHyuck/MoveOn/blob/master/gif/navi2.gif?raw=true)
+
+*Update log*
 
 -------------------------------------------------------
 0518
