@@ -3,13 +3,26 @@ PNU CSE Student Term Project
 
 # Preview
 
-![init](hhttps://github.com/BaeJuneHyuck/MoveOn/blob/master/gif/init.gif?raw=true)
+<details>
+<summary>초기화면</summary>
+  <img src="https://github.com/BaeJuneHyuck/MoveOn/blob/master/gif/init.gif"" alt="hi" class="inline"/>
+</details>
 
-![init](hhttps://github.com/BaeJuneHyuck/MoveOn/blob/master/gif/locationadd.gif?raw=true)
+<details>
+<summary>장소 등록하기</summary>
+ <img src="https://github.com/BaeJuneHyuck/MoveOn/blob/master/gif/locationadd.gif"" alt="hi" class="inline"/>
+</details>
 
-![init](hhttps://github.com/BaeJuneHyuck/MoveOn/blob/master/gif/navi1.gif?raw=true)
+<details>
+<summary>검색으로 길찾기</summary>
+ <img src="https://github.com/BaeJuneHyuck/MoveOn/blob/master/gif/navi2.gif"" alt="hi" class="inline"/>
+![navigation](https://github.com/BaeJuneHyuck/MoveOn/blob/master/gif/navi1.gif?raw=true)
+</details>
 
-![init](hhttps://github.com/BaeJuneHyuck/MoveOn/blob/master/gif/navi2.gif?raw=true)
+<details>
+<summary>마커 통한 길찾기</summary>
+ <img src="https://github.com/BaeJuneHyuck/MoveOn/blob/master/gif/navi2.gif"" alt="hi" class="inline"/>
+</details>
 
 *Update log*
 
