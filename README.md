@@ -24,8 +24,8 @@ PNU CSE Student Term Project
  <img src="https://github.com/BaeJuneHyuck/MoveOn/blob/master/gif/navi2.gif"" alt="hi" class="inline"/>
 </details>
 
-*Update log*
 
+# Update
 -------------------------------------------------------
 0518
  * api key 오류 수정 (릴리즈 버전에서도 지도 사용가능)
